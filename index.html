@@ -27,6 +27,8 @@
     overflow: hidden;
     overscroll-behavior: none;
   }
+
+  /* ── 縦画面レイアウト ── */
   body {
     display: flex;
     flex-direction: column;
@@ -40,13 +42,63 @@
     align-items: center;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    order: 0;
   }
+  .video-stage {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+    order: 1;
+  }
+  .controls {
+    background: var(--panel);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 20px;
+    flex-shrink: 0;
+    order: 2;
+  }
+
+  /* ── 横画面レイアウト（サイドバー方式）── */
+  @media (orientation: landscape) and (max-height: 520px) {
+    body { flex-direction: row; flex-wrap: wrap; }
+    .header {
+      width: 100%;
+      padding: 6px 16px;
+    }
+    .video-stage {
+      flex: 1;
+      height: calc(100dvh - 40px);
+    }
+    .controls {
+      width: 210px;
+      height: calc(100dvh - 40px);
+      border-top: none;
+      border-left: 1px solid var(--border);
+      padding: 12px 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0;
+      flex-shrink: 0;
+    }
+    .delay-control  { margin-bottom: 8px; }
+    .delay-label    { margin-bottom: 6px; }
+    .delay-value    { font-size: 20px; }
+    .toggle-row     { padding: 5px 0; margin-bottom: 8px; }
+    .btn            { padding: 9px 6px; font-size: 12px; }
+  }
+
+  /* ── 共通コンポーネント ── */
   .title {
     font-size: 13px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     font-weight: 600;
-    color: var(--text);
   }
   .title span { color: var(--accent); }
   .status {
@@ -63,23 +115,15 @@
     background: var(--dim);
     transition: background 0.3s;
   }
-  .status-dot.live { background: var(--accent-2); box-shadow: 0 0 12px var(--accent-2); animation: pulse 2s infinite; }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+  .status-dot.live {
+    background: var(--accent-2);
+    box-shadow: 0 0 12px var(--accent-2);
+    animation: pulse 2s infinite;
   }
-  .video-stage {
-    flex: 1;
-    position: relative;
-    background: #000;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
   #playback {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     display: block;
     background: #000;
   }
@@ -89,6 +133,7 @@
     opacity: 0;
     pointer-events: none;
   }
+
   .overlay {
     position: absolute;
     inset: 0;
@@ -96,197 +141,98 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.9));
+    background: linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,.9));
     text-align: center;
     padding: 40px 24px;
     z-index: 10;
-    transition: opacity 0.4s;
+    transition: opacity .4s;
   }
-  .overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .overlay-icon {
-    font-size: 56px;
-    margin-bottom: 24px;
-    filter: drop-shadow(0 4px 20px rgba(255,59,48,0.3));
-  }
-  .overlay h1 {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-bottom: 12px;
-  }
-  .overlay p {
-    font-size: 14px;
-    color: var(--dim);
-    line-height: 1.7;
-    max-width: 320px;
-    margin-bottom: 32px;
-  }
+  .overlay.hidden { opacity: 0; pointer-events: none; }
+  .overlay-icon { font-size: 56px; margin-bottom: 24px; }
+  .overlay h1 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+  .overlay p  { font-size: 14px; color: var(--dim); line-height: 1.7; max-width: 320px; margin-bottom: 32px; }
   .start-btn {
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 16px 40px;
-    border-radius: 100px;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 8px 32px rgba(255,59,48,0.4);
+    background: var(--accent); color: white; border: none;
+    padding: 16px 40px; border-radius: 100px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    box-shadow: 0 8px 32px rgba(255,59,48,.4);
   }
-  .start-btn:active { transform: scale(0.96); }
-  .error-msg {
-    color: var(--accent);
-    font-size: 13px;
-    margin-top: 16px;
-    max-width: 320px;
-    line-height: 1.5;
-  }
+  .start-btn:active { transform: scale(.96); }
+  .error-msg { color: var(--accent); font-size: 13px; margin-top: 16px; max-width: 320px; line-height: 1.5; }
+
   .delay-badge {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 8px 14px;
-    border-radius: 100px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    z-index: 5;
+    position: absolute; top: 16px; left: 16px;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    padding: 8px 14px; border-radius: 100px;
+    font-size: 12px; font-weight: 600; letter-spacing: .08em;
+    display: flex; align-items: center; gap: 6px; z-index: 5;
   }
   .delay-badge::before {
-    content: '';
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: pulse 1.5s infinite;
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); animation: pulse 1.5s infinite;
   }
   .buffer-indicator {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 8px 14px;
-    border-radius: 100px;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    z-index: 5;
-    color: var(--dim);
+    position: absolute; top: 16px; right: 16px;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    padding: 8px 14px; border-radius: 100px;
+    font-size: 11px; letter-spacing: .05em; z-index: 5; color: var(--dim);
   }
   .buffer-indicator strong { color: var(--text); font-variant-numeric: tabular-nums; }
-  .controls {
-    background: var(--panel);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border);
-    padding: 20px;
-    flex-shrink: 0;
-  }
+
   .delay-control { margin-bottom: 16px; }
   .delay-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+    display: flex; justify-content: space-between; align-items: baseline;
     margin-bottom: 10px;
   }
   .delay-label span:first-child {
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--dim);
+    font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--dim);
   }
   .delay-value {
-    font-size: 24px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
+    font-size: 24px; font-weight: 700;
+    font-variant-numeric: tabular-nums; letter-spacing: -.02em;
   }
-  .delay-value small {
-    font-size: 13px;
-    color: var(--dim);
-    font-weight: 400;
-    margin-left: 2px;
-  }
+  .delay-value small { font-size: 13px; color: var(--dim); font-weight: 400; margin-left: 2px; }
+
   input[type="range"] {
-    width: 100%;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 4px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 2px;
-    outline: none;
+    width: 100%; -webkit-appearance: none; appearance: none;
+    height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; outline: none;
   }
   input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 22px; height: 22px;
-    background: var(--text);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    -webkit-appearance: none; width: 22px; height: 22px;
+    background: var(--text); border-radius: 50%; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.4);
   }
   input[type="range"]::-moz-range-thumb {
-    width: 22px; height: 22px;
-    background: var(--text);
-    border-radius: 50%;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    width: 22px; height: 22px; background: var(--text); border-radius: 50%;
+    cursor: pointer; border: none; box-shadow: 0 2px 8px rgba(0,0,0,.4);
   }
+
   .button-row { display: flex; gap: 10px; }
   .btn {
-    flex: 1;
-    background: rgba(255,255,255,0.08);
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: inherit;
+    flex: 1; background: rgba(255,255,255,.08); color: var(--text);
+    border: 1px solid var(--border); padding: 12px; border-radius: 12px;
+    font-size: 13px; font-weight: 500; letter-spacing: .03em;
+    cursor: pointer; transition: all .15s; font-family: inherit;
   }
-  .btn:active { transform: scale(0.97); background: rgba(255,255,255,0.14); }
+  .btn:active { transform: scale(.97); background: rgba(255,255,255,.14); }
   .btn.primary { background: var(--accent); border-color: var(--accent); }
   .btn.primary:active { background: #d62e24; }
+
   .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0;
-    margin-bottom: 12px;
-    font-size: 13px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; margin-bottom: 12px; font-size: 13px;
   }
-  .toggle-row span { color: var(--dim); letter-spacing: 0.03em; }
+  .toggle-row span { color: var(--dim); letter-spacing: .03em; }
   .switch {
-    position: relative;
-    width: 44px; height: 26px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 13px;
-    cursor: pointer;
-    transition: background 0.2s;
+    position: relative; width: 44px; height: 26px;
+    background: rgba(255,255,255,.1); border-radius: 13px; cursor: pointer; transition: background .2s;
   }
   .switch.on { background: var(--accent-2); }
   .switch::after {
-    content: '';
-    position: absolute;
-    top: 2px; left: 2px;
-    width: 22px; height: 22px;
-    background: white;
-    border-radius: 50%;
-    transition: transform 0.2s;
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 22px; height: 22px; background: white; border-radius: 50%; transition: transform .2s;
   }
   .switch.on::after { transform: translateX(18px); }
 </style>
@@ -299,6 +245,7 @@
     <div class="status-dot" id="statusDot"></div>
   </div>
 </div>
+
 <div class="video-stage">
   <video id="liveVideo" autoplay playsinline muted></video>
   <canvas id="playback"></canvas>
@@ -316,6 +263,7 @@
     <div class="error-msg" id="errorMsg"></div>
   </div>
 </div>
+
 <div class="controls">
   <div class="delay-control">
     <div class="delay-label">
@@ -329,30 +277,33 @@
     <div class="switch on" id="mirrorToggle"></div>
   </div>
   <div class="button-row">
-    <button class="btn" id="cameraSwitchBtn">📷 カメラ切替</button>
+    <button class="btn" id="cameraSwitchBtn">📷 切替</button>
+    <button class="btn" id="rotateBtn">🔄 回転</button>
     <button class="btn primary" id="stopBtn" style="display:none;">停止</button>
   </div>
 </div>
-<script>
-  const liveVideo    = document.getElementById('liveVideo');
-  const canvas       = document.getElementById('playback');
-  const ctx          = canvas.getContext('2d');
-  const startBtn     = document.getElementById('startBtn');
-  const stopBtn      = document.getElementById('stopBtn');
-  const overlay      = document.getElementById('overlay');
-  const errorMsg     = document.getElementById('errorMsg');
-  const delaySlider  = document.getElementById('delaySlider');
-  const delayDisplay = document.getElementById('delayDisplay');
-  const delayBadge   = document.getElementById('delayBadge');
-  const delayBadgeText = document.getElementById('delayBadgeText');
-  const bufferIndicator = document.getElementById('bufferIndicator');
-  const bufferText   = document.getElementById('bufferText');
-  const statusText   = document.getElementById('statusText');
-  const statusDot    = document.getElementById('statusDot');
-  const mirrorToggle = document.getElementById('mirrorToggle');
-  const cameraSwitchBtn = document.getElementById('cameraSwitchBtn');
 
-  // キャプチャ用の隠れキャンバス
+<script>
+  const liveVideo       = document.getElementById('liveVideo');
+  const canvas          = document.getElementById('playback');
+  const ctx             = canvas.getContext('2d');
+  const startBtn        = document.getElementById('startBtn');
+  const stopBtn         = document.getElementById('stopBtn');
+  const overlay         = document.getElementById('overlay');
+  const errorMsg        = document.getElementById('errorMsg');
+  const delaySlider     = document.getElementById('delaySlider');
+  const delayDisplay    = document.getElementById('delayDisplay');
+  const delayBadge      = document.getElementById('delayBadge');
+  const delayBadgeText  = document.getElementById('delayBadgeText');
+  const bufferIndicator = document.getElementById('bufferIndicator');
+  const bufferText      = document.getElementById('bufferText');
+  const statusText      = document.getElementById('statusText');
+  const statusDot       = document.getElementById('statusDot');
+  const mirrorToggle    = document.getElementById('mirrorToggle');
+  const cameraSwitchBtn = document.getElementById('cameraSwitchBtn');
+  const rotateBtn       = document.getElementById('rotateBtn');
+
+  // 非表示のキャプチャ用キャンバス
   const capCanvas = document.createElement('canvas');
   const capCtx    = capCanvas.getContext('2d');
 
@@ -364,27 +315,37 @@
   let isRunning = false;
   let mirrored = true;
   let currentFacingMode = 'user';
+  let rotationDeg = 0; // 手動回転: 0 / 90 / 180 / 270
 
-  const CAPTURE_FPS = 12;
-  const CAPTURE_INTERVAL = Math.round(1000 / CAPTURE_FPS);
+  const CAPTURE_INTERVAL = 80; // ~12fps
 
+  // ── キャンバスサイズをコンテナに合わせる ──
   function resizeCanvas() {
-    canvas.width  = canvas.offsetWidth  || canvas.clientWidth;
-    canvas.height = canvas.offsetHeight || canvas.clientHeight;
+    canvas.width  = canvas.offsetWidth  || canvas.clientWidth  || 1;
+    canvas.height = canvas.offsetHeight || canvas.clientHeight || 1;
   }
   window.addEventListener('resize', resizeCanvas);
 
+  // ── 遅延スライダー ──
   delaySlider.addEventListener('input', (e) => {
     delaySeconds = parseInt(e.target.value);
     delayDisplay.textContent = delaySeconds;
     delayBadgeText.textContent = `${delaySeconds}s 遅延`;
   });
 
+  // ── ミラー切替 ──
   mirrorToggle.addEventListener('click', () => {
     mirrored = !mirrored;
     mirrorToggle.classList.toggle('on', mirrored);
   });
 
+  // ── 回転ボタン（上下逆などを手動補正）──
+  rotateBtn.addEventListener('click', () => {
+    rotationDeg = (rotationDeg + 90) % 360;
+    rotateBtn.textContent = rotationDeg === 0 ? '🔄 回転' : `🔄 ${rotationDeg}°`;
+  });
+
+  // ── カメラ切替 ──
   cameraSwitchBtn.addEventListener('click', async () => {
     if (!isRunning) return;
     currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
@@ -393,6 +354,7 @@
   });
 
   startBtn.addEventListener('click', startCamera);
+
   stopBtn.addEventListener('click', () => {
     stopCapture();
     overlay.classList.remove('hidden');
@@ -404,28 +366,16 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   });
 
+  // ── カメラ起動 ──
   async function startCamera() {
     errorMsg.textContent = '';
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: currentFacingMode,
-          width:  { ideal: 1280 },
-          height: { ideal: 720 }
-        },
+        video: { facingMode: currentFacingMode, width: {ideal:1280}, height: {ideal:720} },
         audio: false
       });
       liveVideo.srcObject = stream;
       await liveVideo.play();
-
-      // キャプチャキャンバスサイズを決定（メモリ節約のため上限 480px）
-      liveVideo.addEventListener('loadedmetadata', () => {
-        const vw = liveVideo.videoWidth  || 640;
-        const vh = liveVideo.videoHeight || 480;
-        const maxW = 480;
-        capCanvas.width  = maxW;
-        capCanvas.height = Math.round(maxW * vh / vw);
-      }, { once: true });
 
       frameBuffer = [];
       resizeCanvas();
@@ -443,83 +393,89 @@
       isRunning = true;
     } catch (err) {
       let msg = 'カメラを起動できませんでした。';
-      if (err.name === 'NotAllowedError') {
-        msg = 'カメラへのアクセスが拒否されました。ブラウザの設定からカメラを許可してください。';
-      } else if (err.name === 'NotFoundError') {
-        msg = 'カメラが見つかりませんでした。';
-      } else if (err.message) {
-        msg = err.message;
-      }
+      if      (err.name === 'NotAllowedError') msg = 'カメラへのアクセスが拒否されました。ブラウザ設定で許可してください。';
+      else if (err.name === 'NotFoundError')   msg = 'カメラが見つかりませんでした。';
+      else if (err.message)                    msg = err.message;
       errorMsg.textContent = msg;
     }
   }
 
+  // ── フレームキャプチャ ──
   function captureFrame() {
-    if (!isRunning || !liveVideo.videoWidth) return;
+    if (!isRunning) return;
+    const vw = liveVideo.videoWidth;
+    const vh = liveVideo.videoHeight;
+    // videoWidth/videoHeight が確定するまで待つ（iOS では遅れることがある）
+    if (!vw || !vh) return;
+
+    // 毎フレームで実際の動画サイズに合わせてキャプチャキャンバスをリサイズ
+    // → loadedmetadata 時点ではサイズが未確定なためここで設定する
+    const maxDim = 480;
+    if (vw >= vh) {
+      capCanvas.width  = maxDim;
+      capCanvas.height = Math.round(maxDim * vh / vw);
+    } else {
+      capCanvas.width  = Math.round(maxDim * vw / vh);
+      capCanvas.height = maxDim;
+    }
 
     capCtx.drawImage(liveVideo, 0, 0, capCanvas.width, capCanvas.height);
 
-    // JPEG圧縮して保存（メモリ効率よく）
     const jpeg = capCanvas.toDataURL('image/jpeg', 0.65);
     const img = new Image();
     img.src = jpeg;
-
     frameBuffer.push({ t: Date.now(), img });
 
-    // 遅延 + 余裕 6秒より古いフレームを破棄
+    // 古いフレームを破棄（遅延 + 余裕6秒）
     const cutoff = Date.now() - (delaySeconds + 6) * 1000;
     while (frameBuffer.length > 0 && frameBuffer[0].t < cutoff) {
       frameBuffer.shift();
     }
   }
 
+  // ── 描画ループ ──
   function drawLoop() {
     rafId = requestAnimationFrame(drawLoop);
     if (!isRunning || frameBuffer.length === 0) return;
 
+    // 目標時刻（現在 - 遅延秒数）に最も近い過去フレームを取得
     const targetTime = Date.now() - delaySeconds * 1000;
-
-    // targetTime 以前の最新フレームを探す
-    let frame = null;
+    let frame = frameBuffer[0]; // バッファが溜まるまでは最古フレームを表示
     for (let i = frameBuffer.length - 1; i >= 0; i--) {
-      if (frameBuffer[i].t <= targetTime) {
-        frame = frameBuffer[i];
-        break;
-      }
+      if (frameBuffer[i].t <= targetTime) { frame = frameBuffer[i]; break; }
     }
-    // バッファがまだ溜まっていない間は最古フレームで待機
-    if (!frame) frame = frameBuffer[0];
     if (!frame || !frame.img.complete || !frame.img.naturalWidth) return;
 
     const cw = canvas.width;
     const ch = canvas.height;
+    if (!cw || !ch) return;
+
     const fw = frame.img.naturalWidth;
     const fh = frame.img.naturalHeight;
+    const isRot90 = (rotationDeg === 90 || rotationDeg === 270);
 
-    if (!cw || !ch || !fw || !fh) return;
-
-    const scale = Math.min(cw / fw, ch / fh);
-    const sw = fw * scale;
-    const sh = fh * scale;
-    const dx = (cw - sw) / 2;
-    const dy = (ch - sh) / 2;
+    // 90°/270° 回転時はキャンバスへのフィットで幅・高さが入れ替わる
+    const fitW = isRot90 ? fh : fw;
+    const fitH = isRot90 ? fw : fh;
+    const scale = Math.min(cw / fitW, ch / fitH);
 
     ctx.clearRect(0, 0, cw, ch);
     ctx.save();
-    if (mirrored) {
-      ctx.translate(cw, 0);
-      ctx.scale(-1, 1);
-    }
-    ctx.drawImage(frame.img, dx, dy, sw, sh);
+    ctx.translate(cw / 2, ch / 2);
+    // ① まず回転（方向補正）、② 次にミラー（左右反転）の順で適用
+    if (rotationDeg) ctx.rotate(rotationDeg * Math.PI / 180);
+    if (mirrored)    ctx.scale(-1, 1);
+    ctx.drawImage(frame.img, -fw * scale / 2, -fh * scale / 2, fw * scale, fh * scale);
     ctx.restore();
 
-    // バッファ表示更新
+    // バッファ秒数を表示
     if (frameBuffer.length > 1) {
       const dur = (frameBuffer[frameBuffer.length - 1].t - frameBuffer[0].t) / 1000;
       bufferText.textContent = dur.toFixed(1) + 's';
     }
   }
 
+  // ── 停止・クリーンアップ ──
   function stopCapture() {
     isRunning = false;
     if (captureInterval) { clearInterval(captureInterval); captureInterval = null; }
