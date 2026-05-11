@@ -33,7 +33,6 @@
     height: 100vh;
     height: 100dvh;
   }
-  /* ヘッダー */
   .header {
     padding: 12px 20px;
     display: flex;
@@ -69,7 +68,6 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
   }
-  /* メインのビデオ表示 */
   .video-stage {
     flex: 1;
     position: relative;
@@ -82,18 +80,15 @@
   #playback {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    transform: scaleX(-1); /* 鏡像反転 */
+    display: block;
     background: #000;
   }
   #liveVideo {
-    /* 録画のためだけに使用、画面外で動かす */
     position: absolute;
     width: 1px; height: 1px;
     opacity: 0;
     pointer-events: none;
   }
-  /* オーバーレイ：開始前の案内 */
   .overlay {
     position: absolute;
     inset: 0;
@@ -150,7 +145,6 @@
     max-width: 320px;
     line-height: 1.5;
   }
-  /* 遅延時間の表示（左上） */
   .delay-badge {
     position: absolute;
     top: 16px;
@@ -175,7 +169,6 @@
     background: var(--accent);
     animation: pulse 1.5s infinite;
   }
-  /* バッファ進捗（右上） */
   .buffer-indicator {
     position: absolute;
     top: 16px;
@@ -191,7 +184,6 @@
     color: var(--dim);
   }
   .buffer-indicator strong { color: var(--text); font-variant-numeric: tabular-nums; }
-  /* コントロールパネル */
   .controls {
     background: var(--panel);
     backdrop-filter: blur(20px);
@@ -200,9 +192,7 @@
     padding: 20px;
     flex-shrink: 0;
   }
-  .delay-control {
-    margin-bottom: 16px;
-  }
+  .delay-control { margin-bottom: 16px; }
   .delay-label {
     display: flex;
     justify-content: space-between;
@@ -239,26 +229,21 @@
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 22px; height: 22px;
     background: var(--text);
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   }
   input[type="range"]::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 22px; height: 22px;
     background: var(--text);
     border-radius: 50%;
     cursor: pointer;
     border: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   }
-  .button-row {
-    display: flex;
-    gap: 10px;
-  }
+  .button-row { display: flex; gap: 10px; }
   .btn {
     flex: 1;
     background: rgba(255,255,255,0.08);
@@ -274,12 +259,8 @@
     font-family: inherit;
   }
   .btn:active { transform: scale(0.97); background: rgba(255,255,255,0.14); }
-  .btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); }
   .btn.primary:active { background: #d62e24; }
-  /* ミラー反転トグル */
   .toggle-row {
     display: flex;
     align-items: center;
@@ -291,8 +272,7 @@
   .toggle-row span { color: var(--dim); letter-spacing: 0.03em; }
   .switch {
     position: relative;
-    width: 44px;
-    height: 26px;
+    width: 44px; height: 26px;
     background: rgba(255,255,255,0.1);
     border-radius: 13px;
     cursor: pointer;
@@ -302,10 +282,8 @@
   .switch::after {
     content: '';
     position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 22px;
-    height: 22px;
+    top: 2px; left: 2px;
+    width: 22px; height: 22px;
     background: white;
     border-radius: 50%;
     transition: transform 0.2s;
@@ -323,9 +301,9 @@
 </div>
 <div class="video-stage">
   <video id="liveVideo" autoplay playsinline muted></video>
-  <video id="playback" autoplay playsinline muted></video>
+  <canvas id="playback"></canvas>
   <div class="delay-badge" id="delayBadge" style="display:none;">
-    <span id="delayBadgeText">10.0s 遅延</span>
+    <span id="delayBadgeText">10s 遅延</span>
   </div>
   <div class="buffer-indicator" id="bufferIndicator" style="display:none;">
     バッファ <strong id="bufferText">0.0s</strong>
@@ -356,145 +334,114 @@
   </div>
 </div>
 <script>
-  const liveVideo = document.getElementById('liveVideo');
-  const playback = document.getElementById('playback');
-  const startBtn = document.getElementById('startBtn');
-  const stopBtn = document.getElementById('stopBtn');
-  const overlay = document.getElementById('overlay');
-  const errorMsg = document.getElementById('errorMsg');
-  const delaySlider = document.getElementById('delaySlider');
+  const liveVideo    = document.getElementById('liveVideo');
+  const canvas       = document.getElementById('playback');
+  const ctx          = canvas.getContext('2d');
+  const startBtn     = document.getElementById('startBtn');
+  const stopBtn      = document.getElementById('stopBtn');
+  const overlay      = document.getElementById('overlay');
+  const errorMsg     = document.getElementById('errorMsg');
+  const delaySlider  = document.getElementById('delaySlider');
   const delayDisplay = document.getElementById('delayDisplay');
-  const delayBadge = document.getElementById('delayBadge');
+  const delayBadge   = document.getElementById('delayBadge');
   const delayBadgeText = document.getElementById('delayBadgeText');
   const bufferIndicator = document.getElementById('bufferIndicator');
-  const bufferText = document.getElementById('bufferText');
-  const statusText = document.getElementById('statusText');
-  const statusDot = document.getElementById('statusDot');
+  const bufferText   = document.getElementById('bufferText');
+  const statusText   = document.getElementById('statusText');
+  const statusDot    = document.getElementById('statusDot');
   const mirrorToggle = document.getElementById('mirrorToggle');
   const cameraSwitchBtn = document.getElementById('cameraSwitchBtn');
+
+  // キャプチャ用の隠れキャンバス
+  const capCanvas = document.createElement('canvas');
+  const capCtx    = capCanvas.getContext('2d');
+
   let stream = null;
-  let mediaRecorder = null;
-  let mediaSource = null;
-  let sourceBuffer = null;
-  let queue = [];
+  let captureInterval = null;
+  let rafId = null;
+  let frameBuffer = []; // [{t: ms, img: HTMLImageElement}]
   let delaySeconds = 10;
-  let currentFacingMode = 'user'; // フロントカメラ
   let isRunning = false;
   let mirrored = true;
-  // 遅延時間のスライダー
+  let currentFacingMode = 'user';
+
+  const CAPTURE_FPS = 12;
+  const CAPTURE_INTERVAL = Math.round(1000 / CAPTURE_FPS);
+
+  function resizeCanvas() {
+    canvas.width  = canvas.offsetWidth  || canvas.clientWidth;
+    canvas.height = canvas.offsetHeight || canvas.clientHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+
   delaySlider.addEventListener('input', (e) => {
     delaySeconds = parseInt(e.target.value);
     delayDisplay.textContent = delaySeconds;
-    delayBadgeText.textContent = `${delaySeconds.toFixed(1)}s 遅延`;
-    applyDelay();
+    delayBadgeText.textContent = `${delaySeconds}s 遅延`;
   });
-  // ミラー反転トグル
+
   mirrorToggle.addEventListener('click', () => {
     mirrored = !mirrored;
     mirrorToggle.classList.toggle('on', mirrored);
-    playback.style.transform = mirrored ? 'scaleX(-1)' : 'scaleX(1)';
   });
-  // カメラ切替
+
   cameraSwitchBtn.addEventListener('click', async () => {
     if (!isRunning) return;
     currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-    await stopCamera();
+    stopCapture();
     await startCamera();
   });
+
   startBtn.addEventListener('click', startCamera);
-  stopBtn.addEventListener('click', async () => {
-    await stopCamera();
+  stopBtn.addEventListener('click', () => {
+    stopCapture();
     overlay.classList.remove('hidden');
     stopBtn.style.display = 'none';
     delayBadge.style.display = 'none';
     bufferIndicator.style.display = 'none';
     statusText.textContent = '待機中';
     statusDot.classList.remove('live');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   });
+
   async function startCamera() {
     errorMsg.textContent = '';
     try {
-      // ストリーム取得
       stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: currentFacingMode,
-          width: { ideal: 1280 },
+          width:  { ideal: 1280 },
           height: { ideal: 720 }
         },
         audio: false
       });
       liveVideo.srcObject = stream;
       await liveVideo.play();
-      // MediaRecorder + MediaSource で遅延再生
-      // 対応するMIMEタイプを探す
-      const mimeTypes = [
-        'video/webm;codecs=vp9',
-        'video/webm;codecs=vp8',
-        'video/webm',
-        'video/mp4;codecs=avc1.42E01E',
-      ];
-      let mimeType = null;
-      for (const t of mimeTypes) {
-        if (MediaRecorder.isTypeSupported(t) && MediaSource.isTypeSupported(t)) {
-          mimeType = t;
-          break;
-        }
-      }
-      if (!mimeType) {
-        throw new Error('このブラウザは遅延再生に必要な形式に対応していません。Safari最新版またはChromeをお試しください。');
-      }
-      mediaSource = new MediaSource();
-      playback.src = URL.createObjectURL(mediaSource);
-      await new Promise((resolve) => {
-        mediaSource.addEventListener('sourceopen', resolve, { once: true });
-      });
-      sourceBuffer = mediaSource.addSourceBuffer(mimeType);
-      sourceBuffer.mode = 'sequence';
-      queue = [];
-      sourceBuffer.addEventListener('updateend', () => {
-        if (queue.length > 0 && !sourceBuffer.updating) {
-          try {
-            sourceBuffer.appendBuffer(queue.shift());
-          } catch (e) {
-            console.error('appendBuffer error:', e);
-          }
-        }
-        // 古いバッファを削除してメモリを節約
-        trimBuffer();
-      });
-      mediaRecorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2500000 });
-      mediaRecorder.ondataavailable = async (e) => {
-        if (e.data && e.data.size > 0) {
-          const buf = await e.data.arrayBuffer();
-          if (sourceBuffer.updating || queue.length > 0) {
-            queue.push(buf);
-          } else {
-            try {
-              sourceBuffer.appendBuffer(buf);
-            } catch (err) {
-              console.error(err);
-            }
-          }
-        }
-      };
-      // 200ms毎にチャンクを生成（細かいほど遅延が滑らか）
-      mediaRecorder.start(200);
-      // 再生位置を遅延に合わせて制御
-      playback.play().catch(() => {});
-      // 定期的に遅延を維持
-      delayInterval = setInterval(applyDelay, 500);
-      // UI更新
+
+      // キャプチャキャンバスサイズを決定（メモリ節約のため上限 480px）
+      liveVideo.addEventListener('loadedmetadata', () => {
+        const vw = liveVideo.videoWidth  || 640;
+        const vh = liveVideo.videoHeight || 480;
+        const maxW = 480;
+        capCanvas.width  = maxW;
+        capCanvas.height = Math.round(maxW * vh / vw);
+      }, { once: true });
+
+      frameBuffer = [];
+      resizeCanvas();
+
+      captureInterval = setInterval(captureFrame, CAPTURE_INTERVAL);
+      rafId = requestAnimationFrame(drawLoop);
+
       overlay.classList.add('hidden');
       stopBtn.style.display = 'block';
       delayBadge.style.display = 'flex';
       bufferIndicator.style.display = 'block';
+      delayBadgeText.textContent = `${delaySeconds}s 遅延`;
       statusText.textContent = '撮影中';
       statusDot.classList.add('live');
-      delayBadgeText.textContent = `${delaySeconds.toFixed(1)}s 遅延`;
-      playback.style.transform = mirrored ? 'scaleX(-1)' : 'scaleX(1)';
       isRunning = true;
     } catch (err) {
-      console.error(err);
       let msg = 'カメラを起動できませんでした。';
       if (err.name === 'NotAllowedError') {
         msg = 'カメラへのアクセスが拒否されました。ブラウザの設定からカメラを許可してください。';
@@ -506,78 +453,83 @@
       errorMsg.textContent = msg;
     }
   }
-  let delayInterval = null;
-  function applyDelay() {
-    if (!playback || !sourceBuffer || !mediaSource) return;
-    try {
-      const buffered = playback.buffered;
-      if (buffered.length === 0) return;
-      const bufferedEnd = buffered.end(buffered.length - 1);
-      const bufferedStart = buffered.start(0);
-      const bufferDuration = bufferedEnd - bufferedStart;
-      bufferText.textContent = `${bufferDuration.toFixed(1)}s`;
-      // 目標再生位置 = 録画の最新時点から遅延秒数引いた所
-      const target = bufferedEnd - delaySeconds;
-      if (target > bufferedStart) {
-        // バッファに目標位置がある → そこへ移動
-        const diff = playback.currentTime - target;
-        if (Math.abs(diff) > 0.8) {
-          // 大きくずれたらシーク
-          playback.currentTime = target;
-        } else if (Math.abs(diff) > 0.15) {
-          // 微調整は再生速度で
-          playback.playbackRate = diff > 0 ? 0.95 : 1.05;
-        } else {
-          playback.playbackRate = 1.0;
-        }
-      }
-      // まだバッファが足りない場合は一番古い所で待機
-      if (playback.paused) playback.play().catch(() => {});
-    } catch (e) {
-      // ignore
+
+  function captureFrame() {
+    if (!isRunning || !liveVideo.videoWidth) return;
+
+    capCtx.drawImage(liveVideo, 0, 0, capCanvas.width, capCanvas.height);
+
+    // JPEG圧縮して保存（メモリ効率よく）
+    const jpeg = capCanvas.toDataURL('image/jpeg', 0.65);
+    const img = new Image();
+    img.src = jpeg;
+
+    frameBuffer.push({ t: Date.now(), img });
+
+    // 遅延 + 余裕 6秒より古いフレームを破棄
+    const cutoff = Date.now() - (delaySeconds + 6) * 1000;
+    while (frameBuffer.length > 0 && frameBuffer[0].t < cutoff) {
+      frameBuffer.shift();
     }
   }
-  function trimBuffer() {
-    if (!sourceBuffer || sourceBuffer.updating) return;
-    try {
-      const buffered = sourceBuffer.buffered;
-      if (buffered.length === 0) return;
-      const start = buffered.start(0);
-      const end = buffered.end(buffered.length - 1);
-      // 遅延 + 余裕 5秒以上前の部分を削除
-      const keepFrom = end - (delaySeconds + 5);
-      if (keepFrom > start + 1) {
-        sourceBuffer.remove(start, keepFrom);
+
+  function drawLoop() {
+    rafId = requestAnimationFrame(drawLoop);
+    if (!isRunning || frameBuffer.length === 0) return;
+
+    const targetTime = Date.now() - delaySeconds * 1000;
+
+    // targetTime 以前の最新フレームを探す
+    let frame = null;
+    for (let i = frameBuffer.length - 1; i >= 0; i--) {
+      if (frameBuffer[i].t <= targetTime) {
+        frame = frameBuffer[i];
+        break;
       }
-    } catch (e) {
-      // ignore
+    }
+    // バッファがまだ溜まっていない間は最古フレームで待機
+    if (!frame) frame = frameBuffer[0];
+    if (!frame || !frame.img.complete || !frame.img.naturalWidth) return;
+
+    const cw = canvas.width;
+    const ch = canvas.height;
+    const fw = frame.img.naturalWidth;
+    const fh = frame.img.naturalHeight;
+
+    if (!cw || !ch || !fw || !fh) return;
+
+    const scale = Math.min(cw / fw, ch / fh);
+    const sw = fw * scale;
+    const sh = fh * scale;
+    const dx = (cw - sw) / 2;
+    const dy = (ch - sh) / 2;
+
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.save();
+    if (mirrored) {
+      ctx.translate(cw, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(frame.img, dx, dy, sw, sh);
+    ctx.restore();
+
+    // バッファ表示更新
+    if (frameBuffer.length > 1) {
+      const dur = (frameBuffer[frameBuffer.length - 1].t - frameBuffer[0].t) / 1000;
+      bufferText.textContent = dur.toFixed(1) + 's';
     }
   }
-  async function stopCamera() {
+
+  function stopCapture() {
     isRunning = false;
-    if (delayInterval) {
-      clearInterval(delayInterval);
-      delayInterval = null;
-    }
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-    }
-    mediaRecorder = null;
-    if (stream) {
-      stream.getTracks().forEach(t => t.stop());
-      stream = null;
-    }
+    if (captureInterval) { clearInterval(captureInterval); captureInterval = null; }
+    if (rafId)           { cancelAnimationFrame(rafId);    rafId = null; }
+    if (stream)          { stream.getTracks().forEach(t => t.stop()); stream = null; }
     liveVideo.srcObject = null;
-    if (mediaSource && mediaSource.readyState === 'open') {
-      try { mediaSource.endOfStream(); } catch(e) {}
-    }
-    playback.src = '';
-    mediaSource = null;
-    sourceBuffer = null;
-    queue = [];
+    frameBuffer = [];
   }
-  // ページ離脱時のクリーンアップ
-  window.addEventListener('beforeunload', stopCamera);
+
+  window.addEventListener('beforeunload', stopCapture);
 </script>
 </body>
 </html>
