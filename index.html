@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Delay Mirror">
+<meta name="theme-color" content="#0a0a0b">
+<title>Delay Mirror — 遅延再生カメラ</title>
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --panel: rgba(20, 20, 22, 0.85);
+    --text: #f5f5f7;
+    --dim: #8a8a90;
+    --accent: #ff3b30;
+    --accent-2: #30d158;
+    --border: rgba(255,255,255,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Helvetica Neue', 'Hiragino Sans', system-ui, sans-serif;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+  }
+  /* ヘッダー */
+  .header {
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .title {
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .title span { color: var(--accent); }
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--dim);
+    transition: background 0.3s;
+  }
+  .status-dot.live { background: var(--accent-2); box-shadow: 0 0 12px var(--accent-2); animation: pulse 2s infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  /* メインのビデオ表示 */
+  .video-stage {
+    flex: 1;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #playback {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scaleX(-1); /* 鏡像反転 */
+    background: #000;
+  }
+  #liveVideo {
+    /* 録画のためだけに使用、画面外で動かす */
+    position: absolute;
+    width: 1px; height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* オーバーレイ：開始前の案内 */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.9));
+    text-align: center;
+    padding: 40px 24px;
+    z-index: 10;
+    transition: opacity 0.4s;
+  }
+  .overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .overlay-icon {
+    font-size: 56px;
+    margin-bottom: 24px;
+    filter: drop-shadow(0 4px 20px rgba(255,59,48,0.3));
+  }
+  .overlay h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .overlay p {
+    font-size: 14px;
+    color: var(--dim);
+    line-height: 1.7;
+    max-width: 320px;
+    margin-bottom: 32px;
+  }
+  .start-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 100px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 8px 32px rgba(255,59,48,0.4);
+  }
+  .start-btn:active { transform: scale(0.96); }
+  .error-msg {
+    color: var(--accent);
+    font-size: 13px;
+    margin-top: 16px;
+    max-width: 320px;
+    line-height: 1.5;
+  }
+  /* 遅延時間の表示（左上） */
+  .delay-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 8px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 5;
+  }
+  .delay-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.5s infinite;
+  }
+  /* バッファ進捗（右上） */
+  .buffer-indicator {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 8px 14px;
+    border-radius: 100px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    z-index: 5;
+    color: var(--dim);
+  }
+  .buffer-indicator strong { color: var(--text); font-variant-numeric: tabular-nums; }
+  /* コントロールパネル */
+  .controls {
+    background: var(--panel);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 20px;
+    flex-shrink: 0;
+  }
+  .delay-control {
+    margin-bottom: 16px;
+  }
+  .delay-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .delay-label span:first-child {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .delay-value {
+    font-size: 24px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .delay-value small {
+    font-size: 13px;
+    color: var(--dim);
+    font-weight: 400;
+    margin-left: 2px;
+  }
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    background: var(--text);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    background: var(--text);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .button-row {
+    display: flex;
+    gap: 10px;
+  }
+  .btn {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(0.97); background: rgba(255,255,255,0.14); }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .btn.primary:active { background: #d62e24; }
+  /* ミラー反転トグル */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+  .toggle-row span { color: var(--dim); letter-spacing: 0.03em; }
+  .switch {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .switch.on { background: var(--accent-2); }
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .switch.on::after { transform: translateX(18px); }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title">DELAY <span>MIRROR</span></div>
+  <div class="status">
+    <span id="statusText">待機中</span>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
+</div>
+<div class="video-stage">
+  <video id="liveVideo" autoplay playsinline muted></video>
+  <video id="playback" autoplay playsinline muted></video>
+  <div class="delay-badge" id="delayBadge" style="display:none;">
+    <span id="delayBadgeText">10.0s 遅延</span>
+  </div>
+  <div class="buffer-indicator" id="bufferIndicator" style="display:none;">
+    バッファ <strong id="bufferText">0.0s</strong>
+  </div>
+  <div class="overlay" id="overlay">
+    <div class="overlay-icon">🪞</div>
+    <h1>遅延ミラー</h1>
+    <p>カメラの映像を指定した秒数だけ遅らせて再生します。ダンスやフォームのチェックに。</p>
+    <button class="start-btn" id="startBtn">カメラを開始</button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+</div>
+<div class="controls">
+  <div class="delay-control">
+    <div class="delay-label">
+      <span>遅延時間</span>
+      <div class="delay-value"><span id="delayDisplay">10</span><small>秒</small></div>
+    </div>
+    <input type="range" id="delaySlider" min="2" max="30" step="1" value="10">
+  </div>
+  <div class="toggle-row">
+    <span>ミラー反転（自分視点）</span>
+    <div class="switch on" id="mirrorToggle"></div>
+  </div>
+  <div class="button-row">
+    <button class="btn" id="cameraSwitchBtn">📷 カメラ切替</button>
+    <button class="btn primary" id="stopBtn" style="display:none;">停止</button>
+  </div>
+</div>
+<script>
+  const liveVideo = document.getElementById('liveVideo');
+  const playback = document.getElementById('playback');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const overlay = document.getElementById('overlay');
+  const errorMsg = document.getElementById('errorMsg');
+  const delaySlider = document.getElementById('delaySlider');
+  const delayDisplay = document.getElementById('delayDisplay');
+  const delayBadge = document.getElementById('delayBadge');
+  const delayBadgeText = document.getElementById('delayBadgeText');
+  const bufferIndicator = document.getElementById('bufferIndicator');
+  const bufferText = document.getElementById('bufferText');
+  const statusText = document.getElementById('statusText');
+  const statusDot = document.getElementById('statusDot');
+  const mirrorToggle = document.getElementById('mirrorToggle');
+  const cameraSwitchBtn = document.getElementById('cameraSwitchBtn');
+  let stream = null;
+  let mediaRecorder = null;
+  let mediaSource = null;
+  let sourceBuffer = null;
+  let queue = [];
+  let delaySeconds = 10;
+  let currentFacingMode = 'user'; // フロントカメラ
+  let isRunning = false;
+  let mirrored = true;
+  // 遅延時間のスライダー
+  delaySlider.addEventListener('input', (e) => {
+    delaySeconds = parseInt(e.target.value);
+    delayDisplay.textContent = delaySeconds;
+    delayBadgeText.textContent = `${delaySeconds.toFixed(1)}s 遅延`;
+    applyDelay();
+  });
+  // ミラー反転トグル
+  mirrorToggle.addEventListener('click', () => {
+    mirrored = !mirrored;
+    mirrorToggle.classList.toggle('on', mirrored);
+    playback.style.transform = mirrored ? 'scaleX(-1)' : 'scaleX(1)';
+  });
+  // カメラ切替
+  cameraSwitchBtn.addEventListener('click', async () => {
+    if (!isRunning) return;
+    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    await stopCamera();
+    await startCamera();
+  });
+  startBtn.addEventListener('click', startCamera);
+  stopBtn.addEventListener('click', async () => {
+    await stopCamera();
+    overlay.classList.remove('hidden');
+    stopBtn.style.display = 'none';
+    delayBadge.style.display = 'none';
+    bufferIndicator.style.display = 'none';
+    statusText.textContent = '待機中';
+    statusDot.classList.remove('live');
+  });
+  async function startCamera() {
+    errorMsg.textContent = '';
+    try {
+      // ストリーム取得
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: currentFacingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      });
+      liveVideo.srcObject = stream;
+      await liveVideo.play();
+      // MediaRecorder + MediaSource で遅延再生
+      // 対応するMIMEタイプを探す
+      const mimeTypes = [
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm',
+        'video/mp4;codecs=avc1.42E01E',
+      ];
+      let mimeType = null;
+      for (const t of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(t) && MediaSource.isTypeSupported(t)) {
+          mimeType = t;
+          break;
+        }
+      }
+      if (!mimeType) {
+        throw new Error('このブラウザは遅延再生に必要な形式に対応していません。Safari最新版またはChromeをお試しください。');
+      }
+      mediaSource = new MediaSource();
+      playback.src = URL.createObjectURL(mediaSource);
+      await new Promise((resolve) => {
+        mediaSource.addEventListener('sourceopen', resolve, { once: true });
+      });
+      sourceBuffer = mediaSource.addSourceBuffer(mimeType);
+      sourceBuffer.mode = 'sequence';
+      queue = [];
+      sourceBuffer.addEventListener('updateend', () => {
+        if (queue.length > 0 && !sourceBuffer.updating) {
+          try {
+            sourceBuffer.appendBuffer(queue.shift());
+          } catch (e) {
+            console.error('appendBuffer error:', e);
+          }
+        }
+        // 古いバッファを削除してメモリを節約
+        trimBuffer();
+      });
+      mediaRecorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2500000 });
+      mediaRecorder.ondataavailable = async (e) => {
+        if (e.data && e.data.size > 0) {
+          const buf = await e.data.arrayBuffer();
+          if (sourceBuffer.updating || queue.length > 0) {
+            queue.push(buf);
+          } else {
+            try {
+              sourceBuffer.appendBuffer(buf);
+            } catch (err) {
+              console.error(err);
+            }
+          }
+        }
+      };
+      // 200ms毎にチャンクを生成（細かいほど遅延が滑らか）
+      mediaRecorder.start(200);
+      // 再生位置を遅延に合わせて制御
+      playback.play().catch(() => {});
+      // 定期的に遅延を維持
+      delayInterval = setInterval(applyDelay, 500);
+      // UI更新
+      overlay.classList.add('hidden');
+      stopBtn.style.display = 'block';
+      delayBadge.style.display = 'flex';
+      bufferIndicator.style.display = 'block';
+      statusText.textContent = '撮影中';
+      statusDot.classList.add('live');
+      delayBadgeText.textContent = `${delaySeconds.toFixed(1)}s 遅延`;
+      playback.style.transform = mirrored ? 'scaleX(-1)' : 'scaleX(1)';
+      isRunning = true;
+    } catch (err) {
+      console.error(err);
+      let msg = 'カメラを起動できませんでした。';
+      if (err.name === 'NotAllowedError') {
+        msg = 'カメラへのアクセスが拒否されました。ブラウザの設定からカメラを許可してください。';
+      } else if (err.name === 'NotFoundError') {
+        msg = 'カメラが見つかりませんでした。';
+      } else if (err.message) {
+        msg = err.message;
+      }
+      errorMsg.textContent = msg;
+    }
+  }
+  let delayInterval = null;
+  function applyDelay() {
+    if (!playback || !sourceBuffer || !mediaSource) return;
+    try {
+      const buffered = playback.buffered;
+      if (buffered.length === 0) return;
+      const bufferedEnd = buffered.end(buffered.length - 1);
+      const bufferedStart = buffered.start(0);
+      const bufferDuration = bufferedEnd - bufferedStart;
+      bufferText.textContent = `${bufferDuration.toFixed(1)}s`;
+      // 目標再生位置 = 録画の最新時点から遅延秒数引いた所
+      const target = bufferedEnd - delaySeconds;
+      if (target > bufferedStart) {
+        // バッファに目標位置がある → そこへ移動
+        const diff = playback.currentTime - target;
+        if (Math.abs(diff) > 0.8) {
+          // 大きくずれたらシーク
+          playback.currentTime = target;
+        } else if (Math.abs(diff) > 0.15) {
+          // 微調整は再生速度で
+          playback.playbackRate = diff > 0 ? 0.95 : 1.05;
+        } else {
+          playback.playbackRate = 1.0;
+        }
+      }
+      // まだバッファが足りない場合は一番古い所で待機
+      if (playback.paused) playback.play().catch(() => {});
+    } catch (e) {
+      // ignore
+    }
+  }
+  function trimBuffer() {
+    if (!sourceBuffer || sourceBuffer.updating) return;
+    try {
+      const buffered = sourceBuffer.buffered;
+      if (buffered.length === 0) return;
+      const start = buffered.start(0);
+      const end = buffered.end(buffered.length - 1);
+      // 遅延 + 余裕 5秒以上前の部分を削除
+      const keepFrom = end - (delaySeconds + 5);
+      if (keepFrom > start + 1) {
+        sourceBuffer.remove(start, keepFrom);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  async function stopCamera() {
+    isRunning = false;
+    if (delayInterval) {
+      clearInterval(delayInterval);
+      delayInterval = null;
+    }
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    mediaRecorder = null;
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+    liveVideo.srcObject = null;
+    if (mediaSource && mediaSource.readyState === 'open') {
+      try { mediaSource.endOfStream(); } catch(e) {}
+    }
+    playback.src = '';
+    mediaSource = null;
+    sourceBuffer = null;
+    queue = [];
+  }
+  // ページ離脱時のクリーンアップ
+  window.addEventListener('beforeunload', stopCamera);
+</script>
+</body>
+</html>
