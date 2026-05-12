@@ -196,31 +196,36 @@
   }
   .buffer-indicator strong { color: var(--text); font-variant-numeric: tabular-nums; }
 
-  /* ── 全画面ボタン ── */
-  #fullscreenBtn {
-    position: absolute;
-    bottom: 16px;
-    right: 16px;
-    width: 40px; height: 40px;
-    background: rgba(0,0,0,.55);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    color: var(--dim);
-    border-radius: 50%;
-    cursor: pointer;
-    display: none;
-    align-items: center; justify-content: center;
-    z-index: 6;
-    font-family: inherit;
-    transition: color .2s;
-  }
-  #fullscreenBtn:active { color: var(--text); background: rgba(255,255,255,.12); }
-
   /* ── UI非表示モード ── */
   body.ui-hidden .header,
   body.ui-hidden .controls { display: none; }
   body.ui-hidden .video-stage { position: fixed; inset: 0; z-index: 50; }
-  body.ui-hidden #fullscreenBtn { color: var(--text); }
+
+  /* 全画面中にタップで戻れることを示すヒント */
+  body.ui-hidden #tapHint {
+    display: flex;
+    opacity: 1;
+    animation: fadeHint 3s ease forwards;
+  }
+  @keyframes fadeHint { 0%{opacity:1} 60%{opacity:1} 100%{opacity:0} }
+  #tapHint {
+    display: none;
+    position: absolute;
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 11px;
+    letter-spacing: .06em;
+    pointer-events: none;
+    z-index: 6;
+    white-space: nowrap;
+  }
 
   .delay-control { margin-bottom: 16px; }
   .delay-label {
@@ -296,12 +301,7 @@
   <div class="buffer-indicator" id="bufferIndicator" style="display:none;">
     バッファ <strong id="bufferText">0.0s</strong>
   </div>
-  <button id="fullscreenBtn" title="全画面切替">
-    <svg id="fsIcon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
-      <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-    </svg>
-  </button>
+  <div id="tapHint">タップしてコントロールを表示</div>
   <div class="overlay" id="overlay">
     <div class="overlay-icon">🪞</div>
     <h1>遅延ミラー</h1>
@@ -326,6 +326,12 @@
   <div class="button-row">
     <button class="btn" id="cameraSwitchBtn">📷 切替</button>
     <button class="btn" id="rotateBtn">🔄 回転</button>
+    <button class="btn" id="fullscreenBtn" style="display:none;">
+      <svg id="fsIcon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none">
+        <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+        <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+      </svg>
+    </button>
     <button class="btn primary" id="stopBtn" style="display:none;">停止</button>
   </div>
 </div>
@@ -351,6 +357,7 @@
   const rotateBtn       = document.getElementById('rotateBtn');
   const fullscreenBtn   = document.getElementById('fullscreenBtn');
   const fsIcon          = document.getElementById('fsIcon');
+  const tapHint         = document.getElementById('tapHint');
 
   // 非表示のキャプチャ用キャンバス
   const capCanvas = document.createElement('canvas');
@@ -374,9 +381,20 @@
     isUIHidden = !isUIHidden;
     document.body.classList.toggle('ui-hidden', isUIHidden);
     fsIcon.innerHTML = isUIHidden ? SVG_COLLAPSE : SVG_EXPAND;
+    if (isUIHidden) {
+      // アニメーション再実行のため一旦リセット
+      tapHint.style.animation = 'none';
+      tapHint.offsetHeight; // reflow
+      tapHint.style.animation = '';
+    }
     requestAnimationFrame(resizeCanvas);
   }
   fullscreenBtn.addEventListener('click', toggleUI);
+
+  // 全画面中に映像タップでコントロールを戻す
+  canvas.addEventListener('click', () => {
+    if (isUIHidden) toggleUI();
+  });
 
   const CAPTURE_INTERVAL = 80; // ~12fps
 
