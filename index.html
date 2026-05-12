@@ -196,6 +196,32 @@
   }
   .buffer-indicator strong { color: var(--text); font-variant-numeric: tabular-nums; }
 
+  /* ── 全画面ボタン ── */
+  #fullscreenBtn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    width: 40px; height: 40px;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 6;
+    font-family: inherit;
+    transition: color .2s;
+  }
+  #fullscreenBtn:active { color: var(--text); background: rgba(255,255,255,.12); }
+
+  /* ── UI非表示モード ── */
+  body.ui-hidden .header,
+  body.ui-hidden .controls { display: none; }
+  body.ui-hidden .video-stage { position: fixed; inset: 0; z-index: 50; }
+  body.ui-hidden #fullscreenBtn { color: var(--text); }
+
   .delay-control { margin-bottom: 16px; }
   .delay-label {
     display: flex; justify-content: space-between; align-items: baseline;
@@ -270,6 +296,12 @@
   <div class="buffer-indicator" id="bufferIndicator" style="display:none;">
     バッファ <strong id="bufferText">0.0s</strong>
   </div>
+  <button id="fullscreenBtn" title="全画面切替">
+    <svg id="fsIcon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+      <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+    </svg>
+  </button>
   <div class="overlay" id="overlay">
     <div class="overlay-icon">🪞</div>
     <h1>遅延ミラー</h1>
@@ -317,6 +349,8 @@
   const mirrorToggle    = document.getElementById('mirrorToggle');
   const cameraSwitchBtn = document.getElementById('cameraSwitchBtn');
   const rotateBtn       = document.getElementById('rotateBtn');
+  const fullscreenBtn   = document.getElementById('fullscreenBtn');
+  const fsIcon          = document.getElementById('fsIcon');
 
   // 非表示のキャプチャ用キャンバス
   const capCanvas = document.createElement('canvas');
@@ -331,6 +365,18 @@
   let mirrored = true;
   let currentFacingMode = 'user';
   let rotationDeg = 0; // 手動回転: 0 / 90 / 180 / 270
+  let isUIHidden  = false;
+
+  const SVG_EXPAND = `<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`;
+  const SVG_COLLAPSE = `<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>`;
+
+  function toggleUI() {
+    isUIHidden = !isUIHidden;
+    document.body.classList.toggle('ui-hidden', isUIHidden);
+    fsIcon.innerHTML = isUIHidden ? SVG_COLLAPSE : SVG_EXPAND;
+    requestAnimationFrame(resizeCanvas);
+  }
+  fullscreenBtn.addEventListener('click', toggleUI);
 
   const CAPTURE_INTERVAL = 80; // ~12fps
 
@@ -372,10 +418,13 @@
 
   stopBtn.addEventListener('click', () => {
     stopCapture();
+    // UI非表示モードを解除してから停止
+    if (isUIHidden) { isUIHidden = false; document.body.classList.remove('ui-hidden'); fsIcon.innerHTML = SVG_EXPAND; }
     overlay.classList.remove('hidden');
     stopBtn.style.display = 'none';
     delayBadge.style.display = 'none';
     bufferIndicator.style.display = 'none';
+    fullscreenBtn.style.display = 'none';
     statusText.textContent = '待機中';
     statusDot.classList.remove('live');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -402,6 +451,7 @@
       stopBtn.style.display = 'block';
       delayBadge.style.display = 'flex';
       bufferIndicator.style.display = 'block';
+      fullscreenBtn.style.display = 'flex';
       delayBadgeText.textContent = `${delaySeconds}s 遅延`;
       statusText.textContent = '撮影中';
       statusDot.classList.add('live');
