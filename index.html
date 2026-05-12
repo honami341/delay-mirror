@@ -3,10 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Delay Mirror">
-<meta name="theme-color" content="#0a0a0b">
+<meta name="apple-mobile-web-app-title" content="DelayMirror">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#000000">
 <title>Delay Mirror — 遅延再生カメラ</title>
 <style>
   :root {
@@ -486,6 +488,15 @@
   }
 
   window.addEventListener('beforeunload', stopCapture);
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then((reg) => console.log('SW registered:', reg.scope))
+        .catch((err) => console.warn('SW registration failed:', err));
+    });
+  }
 </script>
 </body>
 </html>
