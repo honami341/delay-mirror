@@ -1,7 +1,7 @@
 {
-  "name": "Delay Mirror",
-  "short_name": "DelayMirror",
-  "description": "カメラ映像を指定秒数だけ遅らせて表示するフォームチェックアプリ",
+  "name": "エコーミラー",
+  "short_name": "エコーミラー",
+  "description": "カメラ映像を10秒前映像として確認できるフォームチェックアプリ",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

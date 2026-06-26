@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'delay-mirror-v1';
+const CACHE_VERSION = 'echo-mirror-v1';
 const CACHE_ASSETS = [
   './',
   './index.html',

@@ -6,19 +6,23 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="DelayMirror">
+<meta name="apple-mobile-web-app-title" content="エコーミラー">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#000000">
-<title>Delay Mirror — 遅延再生カメラ</title>
+<title>エコーミラー — 10秒前映像</title>
 <style>
   :root {
-    --bg: #0a0a0b;
-    --panel: rgba(20, 20, 22, 0.85);
-    --text: #f5f5f7;
-    --dim: #8a8a90;
-    --accent: #ff3b30;
-    --accent-2: #30d158;
-    --border: rgba(255,255,255,0.08);
+    --bg: #050706;
+    --surface: #101411;
+    --surface-2: #171c18;
+    --text: #f4f7f1;
+    --muted: #a7b0a6;
+    --soft: #6f7b70;
+    --line: rgba(244,247,241,.13);
+    --ready: #8fd26a;
+    --focus: #f0c35a;
+    --danger: #e35b4f;
+    --shadow: 0 -12px 30px rgba(0,0,0,.28);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -29,126 +33,52 @@
     overflow: hidden;
     overscroll-behavior: none;
   }
-
-  /* ── 縦画面レイアウト ── */
   body {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
     height: 100vh;
     height: 100dvh;
   }
   .header {
-    padding: 12px 20px;
+    min-height: 48px;
+    padding: 9px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    order: 0;
+    border-bottom: 1px solid var(--line);
+    background: #080b09;
   }
-  .video-stage {
-    flex: 1;
-    min-height: 0;
-    position: relative;
-    background: #000;
-    overflow: hidden;
-    order: 1;
-  }
-  .controls {
-    background: var(--panel);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border);
-    padding: 20px;
-    flex-shrink: 0;
-    order: 2;
-  }
-
-  /* ── 横画面レイアウト（CSS Grid / iPhone対応）── */
-  @media (orientation: landscape) and (max-height: 520px) {
-    body {
-      display: grid;
-      grid-template-columns: 1fr 200px;
-      grid-template-rows: auto 1fr;
-      /* flex 関連プロパティをリセット */
-      flex-direction: unset;
-    }
-    .header {
-      grid-column: 1 / 3;
-      grid-row: 1;
-      padding: 6px 16px;
-      order: unset;
-    }
-    .video-stage {
-      grid-column: 1;
-      grid-row: 2;
-      order: unset;
-      min-height: 0;
-      height: auto;
-    }
-    .controls {
-      grid-column: 2;
-      grid-row: 2;
-      order: unset;
-      height: auto;
-      width: auto;
-      flex-shrink: unset;
-      border-top: none;
-      border-left: 1px solid var(--border);
-      padding: 12px 14px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .delay-control  { margin-bottom: 8px; }
-    .delay-label    { margin-bottom: 6px; }
-    .delay-value    { font-size: 20px; }
-    .toggle-row     { padding: 5px 0; margin-bottom: 8px; }
-    .btn            { padding: 9px 6px; font-size: 12px; }
-  }
-
-  /* ── 共通コンポーネント ── */
-  .title {
-    font-size: 13px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-  .title span { color: var(--accent); }
+  .brand { display: flex; flex-direction: column; gap: 2px; }
+  .title { font-size: 14px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+  .subtitle { color: var(--muted); font-size: 11px; }
   .status {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    color: var(--dim);
-    letter-spacing: 0.1em;
+    gap: 7px;
+    min-height: 30px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    background: rgba(255,255,255,.04);
+    font-size: 12px;
+    white-space: nowrap;
   }
   .status-dot {
     width: 8px; height: 8px;
     border-radius: 50%;
-    background: var(--dim);
-    transition: background 0.3s;
+    background: var(--soft);
+    transition: background .2s, box-shadow .2s;
   }
-  .status-dot.live {
-    background: var(--accent-2);
-    box-shadow: 0 0 12px var(--accent-2);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-  #playback {
-    width: 100%; height: 100%;
-    display: block;
+  .status-dot.live { background: var(--ready); box-shadow: 0 0 0 4px rgba(143,210,106,.14); }
+  .video-stage {
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
     background: #000;
   }
-  #liveVideo {
-    position: absolute;
-    width: 1px; height: 1px;
-    opacity: 0;
-    pointer-events: none;
-  }
-
+  #playback { width: 100%; height: 100%; display: block; background: #000; }
+  #liveVideo { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
   .overlay {
     position: absolute;
     inset: 0;
@@ -156,139 +86,200 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,.9));
-    text-align: center;
-    padding: 40px 24px;
+    gap: 16px;
+    padding: 34px 24px;
     z-index: 10;
-    transition: opacity .4s;
+    text-align: center;
+    background: radial-gradient(circle at 50% 35%, rgba(46,62,47,.92), rgba(5,7,6,.98) 60%);
+    transition: opacity .25s;
   }
   .overlay.hidden { opacity: 0; pointer-events: none; }
-  .overlay-icon { font-size: 56px; margin-bottom: 24px; }
-  .overlay h1 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
-  .overlay p  { font-size: 14px; color: var(--dim); line-height: 1.7; max-width: 320px; margin-bottom: 32px; }
+  .overlay-icon { font-size: 44px; line-height: 1; }
+  .overlay h1 { max-width: 360px; font-size: 30px; line-height: 1.2; font-weight: 800; }
+  .overlay p { max-width: 340px; color: var(--muted); font-size: 15px; line-height: 1.7; }
   .start-btn {
-    background: var(--accent); color: white; border: none;
-    padding: 16px 40px; border-radius: 100px;
-    font-size: 15px; font-weight: 600; cursor: pointer;
-    box-shadow: 0 8px 32px rgba(255,59,48,.4);
+    min-width: 220px;
+    min-height: 54px;
+    border: none;
+    border-radius: 8px;
+    background: var(--ready);
+    color: #061006;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(143,210,106,.24);
   }
-  .start-btn:active { transform: scale(.96); }
-  .error-msg { color: var(--accent); font-size: 13px; margin-top: 16px; max-width: 320px; line-height: 1.5; }
-
+  .start-btn:active, .btn:active, .switch:active { transform: scale(.98); }
+  .error-msg { color: #ffb1aa; font-size: 13px; max-width: 340px; line-height: 1.5; }
+  .delay-badge, .buffer-indicator, .warmup {
+    position: absolute;
+    z-index: 5;
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(5,7,6,.78);
+    color: var(--muted);
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
   .delay-badge {
-    position: absolute; top: 16px; left: 16px;
-    background: rgba(0,0,0,.6);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    padding: 8px 14px; border-radius: 100px;
-    font-size: 12px; font-weight: 600; letter-spacing: .08em;
-    display: flex; align-items: center; gap: 6px; z-index: 5;
-  }
-  .delay-badge::before {
-    content: ''; width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent); animation: pulse 1.5s infinite;
-  }
-  .buffer-indicator {
-    position: absolute; top: 16px; right: 16px;
-    background: rgba(0,0,0,.6);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    padding: 8px 14px; border-radius: 100px;
-    font-size: 11px; letter-spacing: .05em; z-index: 5; color: var(--dim);
-  }
-  .buffer-indicator strong { color: var(--text); font-variant-numeric: tabular-nums; }
-
-  /* ── UI非表示モード ── */
-  body.ui-hidden .header,
-  body.ui-hidden .controls { display: none; }
-  body.ui-hidden .video-stage { position: fixed; inset: 0; z-index: 50; }
-
-  /* 全画面中にタップで戻れることを示すヒント */
-  body.ui-hidden #tapHint {
+    top: 12px; left: 12px;
+    padding: 8px 11px;
     display: flex;
-    opacity: 1;
-    animation: fadeHint 3s ease forwards;
+    align-items: center;
+    gap: 7px;
+    font-weight: 700;
   }
-  @keyframes fadeHint { 0%{opacity:1} 60%{opacity:1} 100%{opacity:0} }
+  .delay-badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--focus); }
+  .buffer-indicator { top: 12px; right: 12px; padding: 8px 11px; }
+  .buffer-indicator strong, .warmup strong { color: var(--text); font-variant-numeric: tabular-nums; }
+  .warmup {
+    left: 50%; bottom: 14px;
+    transform: translateX(-50%);
+    padding: 10px 14px;
+    background: rgba(16,20,17,.9);
+    color: var(--text);
+    font-weight: 700;
+  }
   #tapHint {
     display: none;
     position: absolute;
-    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    bottom: max(16px, env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0,0,0,.55);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    color: var(--dim);
-    padding: 6px 16px;
-    border-radius: 100px;
-    font-size: 11px;
-    letter-spacing: .06em;
+    background: rgba(5,7,6,.74);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12px;
     pointer-events: none;
     z-index: 6;
     white-space: nowrap;
   }
-
-  .delay-control { margin-bottom: 16px; }
+  body.ui-hidden .header, body.ui-hidden .controls { display: none; }
+  body.ui-hidden .video-stage { position: fixed; inset: 0; z-index: 50; }
+  body.ui-hidden #tapHint { display: flex; animation: fadeHint 3s ease forwards; }
+  @keyframes fadeHint { 0%,65%{opacity:1} 100%{opacity:0} }
+  .controls {
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    padding: 12px 14px max(14px, env(safe-area-inset-bottom, 0px));
+  }
+  .control-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .delay-control { min-width: 0; }
   .delay-label {
-    display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
   }
-  .delay-label span:first-child {
-    font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--dim);
-  }
-  .delay-value {
-    font-size: 24px; font-weight: 700;
-    font-variant-numeric: tabular-nums; letter-spacing: -.02em;
-  }
-  .delay-value small { font-size: 13px; color: var(--dim); font-weight: 400; margin-left: 2px; }
-
+  .delay-label span:first-child { color: var(--muted); font-size: 12px; font-weight: 700; }
+  .delay-value { font-size: 30px; font-weight: 850; font-variant-numeric: tabular-nums; }
+  .delay-value small { font-size: 14px; color: var(--muted); margin-left: 2px; font-weight: 650; }
   input[type="range"] {
-    width: 100%; -webkit-appearance: none; appearance: none;
-    height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; outline: none;
+    width: 100%;
+    -webkit-appearance: none; appearance: none;
+    height: 8px;
+    background: linear-gradient(90deg, var(--ready), #d7ddcf);
+    border-radius: 999px;
+    outline: none;
   }
   input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 22px; height: 22px;
-    background: var(--text); border-radius: 50%; cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,.4);
+    -webkit-appearance: none;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--text);
+    border: 3px solid var(--surface);
+    box-shadow: 0 2px 8px rgba(0,0,0,.42);
   }
   input[type="range"]::-moz-range-thumb {
-    width: 22px; height: 22px; background: var(--text); border-radius: 50%;
-    cursor: pointer; border: none; box-shadow: 0 2px 8px rgba(0,0,0,.4);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--text);
+    border: 3px solid var(--surface);
+    box-shadow: 0 2px 8px rgba(0,0,0,.42);
   }
-
-  .button-row { display: flex; gap: 10px; }
+  .state-strip {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .state-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    background: var(--surface-2);
+    font-size: 12px;
+    font-weight: 650;
+  }
+  .button-row {
+    display: grid;
+    grid-template-columns: repeat(5, 68px);
+    gap: 8px;
+  }
   .btn {
-    flex: 1; background: rgba(255,255,255,.08); color: var(--text);
-    border: 1px solid var(--border); padding: 12px; border-radius: 12px;
-    font-size: 13px; font-weight: 500; letter-spacing: .03em;
-    cursor: pointer; transition: all .15s; font-family: inherit;
+    min-height: 58px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
   }
-  .btn:active { transform: scale(.97); background: rgba(255,255,255,.14); }
-  .btn.primary { background: var(--accent); border-color: var(--accent); }
-  .btn.primary:active { background: #d62e24; }
-
-  .toggle-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 0; margin-bottom: 12px; font-size: 13px;
+  .btn .icon { font-size: 18px; line-height: 1; }
+  .btn:disabled { opacity: .45; }
+  .btn.danger { background: rgba(227,91,79,.12); border-color: rgba(227,91,79,.45); color: #ffd8d4; }
+  .toggle-row { display: none; }
+  .switch { display: none; }
+  @media (orientation: landscape) and (max-height: 560px) {
+    body { grid-template-columns: 1fr 220px; grid-template-rows: auto 1fr; }
+    .header { grid-column: 1 / 3; min-height: 40px; padding: 6px 12px; }
+    .subtitle { display: none; }
+    .video-stage { grid-column: 1; grid-row: 2; }
+    .controls { grid-column: 2; grid-row: 2; border-top: none; border-left: 1px solid var(--line); padding: 10px; overflow-y: auto; }
+    .control-grid { grid-template-columns: 1fr; align-content: center; min-height: 100%; }
+    .button-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .delay-value { font-size: 25px; }
+    .btn { min-height: 50px; }
   }
-  .toggle-row span { color: var(--dim); letter-spacing: .03em; }
-  .switch {
-    position: relative; width: 44px; height: 26px;
-    background: rgba(255,255,255,.1); border-radius: 13px; cursor: pointer; transition: background .2s;
+  @media (max-width: 520px) {
+    .header { padding: 8px 12px; }
+    .title { font-size: 13px; }
+    .status { padding: 0 8px; font-size: 11px; }
+    .control-grid { grid-template-columns: 1fr; }
+    .button-row { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .btn { min-height: 54px; }
   }
-  .switch.on { background: var(--accent-2); }
-  .switch::after {
-    content: ''; position: absolute; top: 2px; left: 2px;
-    width: 22px; height: 22px; background: white; border-radius: 50%; transition: transform .2s;
-  }
-  .switch.on::after { transform: translateX(18px); }
 </style>
 </head>
 <body>
 <div class="header">
-  <div class="title">DELAY <span>MIRROR</span></div>
-  <div class="status">
-    <span id="statusText">待機中</span>
+  <div class="brand">
+    <div class="title">エコーミラー</div>
+    <div class="subtitle">指定秒数前の自分を確認</div>
+  </div>
+  <div class="status" aria-live="polite">
     <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">待機中</span>
   </div>
 </div>
 
@@ -296,46 +287,47 @@
   <video id="liveVideo" autoplay playsinline muted></video>
   <canvas id="playback"></canvas>
   <div class="delay-badge" id="delayBadge" style="display:none;">
-    <span id="delayBadgeText">10s 遅延</span>
+    <span id="delayBadgeText">10秒前の映像</span>
   </div>
   <div class="buffer-indicator" id="bufferIndicator" style="display:none;">
-    バッファ <strong id="bufferText">0.0s</strong>
+    ためた映像 <strong id="bufferText">0.0s</strong>
   </div>
-  <div id="tapHint">タップしてコントロールを表示</div>
+  <div class="warmup" id="warmupText" style="display:none;">
+    あと <strong>10.0s</strong>
+  </div>
+  <div id="tapHint">タップで操作を表示</div>
   <div class="overlay" id="overlay">
-    <div class="overlay-icon">🪞</div>
-    <h1>遅延ミラー</h1>
-    <p>カメラの映像を指定した秒数だけ遅らせて再生します。ダンスやフォームのチェックに。</p>
+    <div class="overlay-icon">●</div>
+    <h1>10秒前の自分を見る</h1>
+    <p>動いた直後に画面を見るだけで、フォームや姿勢をその場で確認できます。</p>
     <button class="start-btn" id="startBtn">カメラを開始</button>
     <div class="error-msg" id="errorMsg"></div>
   </div>
 </div>
 
 <div class="controls">
-  <div class="delay-control">
-    <div class="delay-label">
-      <span>遅延時間</span>
-      <div class="delay-value"><span id="delayDisplay">10</span><small>秒</small></div>
+  <div class="control-grid">
+    <div class="delay-control">
+      <div class="delay-label">
+        <span>遅延時間</span>
+        <div class="delay-value"><span id="delayDisplay">10</span><small>秒前</small></div>
+      </div>
+      <input type="range" id="delaySlider" min="2" max="30" step="1" value="10" aria-label="遅延時間">
+      <div class="state-strip">
+        <span class="state-pill" id="cameraState">前面カメラ</span>
+        <span class="state-pill" id="mirrorState">ミラー ON</span>
+        <span class="state-pill" id="rotateState">回転 0°</span>
+      </div>
     </div>
-    <input type="range" id="delaySlider" min="2" max="30" step="1" value="10">
-  </div>
-  <div class="toggle-row">
-    <span>ミラー反転（自分視点）</span>
-    <div class="switch on" id="mirrorToggle"></div>
-  </div>
-  <div class="button-row">
-    <button class="btn" id="cameraSwitchBtn">📷 切替</button>
-    <button class="btn" id="rotateBtn">🔄 回転</button>
-    <button class="btn" id="fullscreenBtn" style="display:none;">
-      <svg id="fsIcon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none">
-        <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
-        <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-      </svg>
-    </button>
-    <button class="btn primary" id="stopBtn" style="display:none;">停止</button>
+    <div class="button-row">
+      <button class="btn" id="cameraSwitchBtn" type="button"><span class="icon">□</span><span>カメラ</span></button>
+      <button class="btn" id="mirrorBtn" type="button"><span class="icon">⇆</span><span>ミラー</span></button>
+      <button class="btn" id="rotateBtn" type="button"><span class="icon">↻</span><span>回転</span></button>
+      <button class="btn" id="fullscreenBtn" type="button" style="display:none;"><span class="icon" id="fsIcon">⛶</span><span id="fsLabel">全画面</span></button>
+      <button class="btn danger" id="stopBtn" type="button" style="display:none;"><span class="icon">■</span><span>停止</span></button>
+    </div>
   </div>
 </div>
-
 <script>
   const liveVideo       = document.getElementById('liveVideo');
   const canvas          = document.getElementById('playback');
@@ -350,37 +342,53 @@
   const delayBadgeText  = document.getElementById('delayBadgeText');
   const bufferIndicator = document.getElementById('bufferIndicator');
   const bufferText      = document.getElementById('bufferText');
+  const warmupText      = document.getElementById('warmupText');
   const statusText      = document.getElementById('statusText');
   const statusDot       = document.getElementById('statusDot');
-  const mirrorToggle    = document.getElementById('mirrorToggle');
+  const mirrorBtn       = document.getElementById('mirrorBtn');
+  const cameraState     = document.getElementById('cameraState');
+  const mirrorState     = document.getElementById('mirrorState');
+  const rotateState     = document.getElementById('rotateState');
   const cameraSwitchBtn = document.getElementById('cameraSwitchBtn');
   const rotateBtn       = document.getElementById('rotateBtn');
   const fullscreenBtn   = document.getElementById('fullscreenBtn');
   const fsIcon          = document.getElementById('fsIcon');
   const tapHint         = document.getElementById('tapHint');
+  const fsLabel         = document.getElementById('fsLabel');
 
   // 非表示のキャプチャ用キャンバス
   const capCanvas = document.createElement('canvas');
   const capCtx    = capCanvas.getContext('2d');
 
   let stream = null;
-  let captureInterval = null;
+  let captureTimer = null;
+  let captureInFlight = false;
   let rafId = null;
-  let frameBuffer = []; // [{t: ms, img: HTMLImageElement}]
+  let frameBuffer = []; // [{t: ms, img: HTMLImageElement, url?: string, ready: boolean}]
   let delaySeconds = 10;
   let isRunning = false;
   let mirrored = true;
   let currentFacingMode = 'user';
   let rotationDeg = 0; // 手動回転: 0 / 90 / 180 / 270
   let isUIHidden  = false;
+  let captureWidth = 0;
+  let captureHeight = 0;
+  let lastDrawnFrame = null;
 
-  const SVG_EXPAND = `<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`;
-  const SVG_COLLAPSE = `<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>`;
+  const ICON_EXPAND = '⛶';
+  const ICON_COLLAPSE = '□';
+  const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const CAPTURE_INTERVAL = IS_IOS ? 125 : 100; // 古い iPad は高fpsより安定優先
+  const CAPTURE_MAX_DIM = IS_IOS ? 360 : 480;
+  const JPEG_QUALITY = IS_IOS ? 0.52 : 0.62;
+  const BUFFER_MARGIN_SECONDS = 2;
 
   function toggleUI() {
     isUIHidden = !isUIHidden;
     document.body.classList.toggle('ui-hidden', isUIHidden);
-    fsIcon.innerHTML = isUIHidden ? SVG_COLLAPSE : SVG_EXPAND;
+    fsIcon.textContent = isUIHidden ? ICON_COLLAPSE : ICON_EXPAND;
+    fsLabel.textContent = isUIHidden ? '戻る' : '全画面';
     if (isUIHidden) {
       // アニメーション再実行のため一旦リセット
       tapHint.style.animation = 'none';
@@ -396,8 +404,6 @@
     if (isUIHidden) toggleUI();
   });
 
-  const CAPTURE_INTERVAL = 80; // ~12fps
-
   // ── キャンバスサイズをコンテナに合わせる ──
   function resizeCanvas() {
     canvas.width  = canvas.offsetWidth  || canvas.clientWidth  || 1;
@@ -407,29 +413,48 @@
 
   // ── 遅延スライダー ──
   delaySlider.addEventListener('input', (e) => {
-    delaySeconds = parseInt(e.target.value);
+    delaySeconds = parseInt(e.target.value, 10);
     delayDisplay.textContent = delaySeconds;
-    delayBadgeText.textContent = `${delaySeconds}s 遅延`;
+    delayBadgeText.textContent = `${delaySeconds}秒前の映像`;
+    updateControlState();
   });
 
   // ── ミラー切替 ──
-  mirrorToggle.addEventListener('click', () => {
+  mirrorBtn.addEventListener('click', () => {
     mirrored = !mirrored;
-    mirrorToggle.classList.toggle('on', mirrored);
+    updateControlState();
   });
 
   // ── 回転ボタン（上下逆などを手動補正）──
   rotateBtn.addEventListener('click', () => {
     rotationDeg = (rotationDeg + 90) % 360;
-    rotateBtn.textContent = rotationDeg === 0 ? '🔄 回転' : `🔄 ${rotationDeg}°`;
+    updateControlState();
   });
 
+
+  function updateControlState() {
+    cameraState.textContent = currentFacingMode === 'user' ? '前面カメラ' : '背面カメラ';
+    mirrorState.textContent = mirrored ? 'ミラー ON' : 'ミラー OFF';
+    rotateState.textContent = `回転 ${rotationDeg}°`;
+  }
   // ── カメラ切替 ──
   cameraSwitchBtn.addEventListener('click', async () => {
     if (!isRunning) return;
-    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-    stopCapture();
-    await startCamera();
+    const previousFacingMode = currentFacingMode;
+    const nextFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    cameraSwitchBtn.disabled = true;
+    try {
+      const nextStream = await openCamera(nextFacingMode);
+      currentFacingMode = nextFacingMode;
+      await useStream(nextStream);
+      updateControlState();
+      errorMsg.textContent = '';
+    } catch (err) {
+      currentFacingMode = previousFacingMode;
+      errorMsg.textContent = cameraErrorMessage(err);
+    } finally {
+      cameraSwitchBtn.disabled = false;
+    }
   });
 
   startBtn.addEventListener('click', startCamera);
@@ -437,11 +462,12 @@
   stopBtn.addEventListener('click', () => {
     stopCapture();
     // UI非表示モードを解除してから停止
-    if (isUIHidden) { isUIHidden = false; document.body.classList.remove('ui-hidden'); fsIcon.innerHTML = SVG_EXPAND; }
+    if (isUIHidden) { isUIHidden = false; document.body.classList.remove('ui-hidden'); fsIcon.textContent = ICON_EXPAND; fsLabel.textContent = '全画面'; }
     overlay.classList.remove('hidden');
     stopBtn.style.display = 'none';
     delayBadge.style.display = 'none';
     bufferIndicator.style.display = 'none';
+    warmupText.style.display = 'none';
     fullscreenBtn.style.display = 'none';
     statusText.textContent = '待機中';
     statusDot.classList.remove('live');
@@ -452,67 +478,147 @@
   async function startCamera() {
     errorMsg.textContent = '';
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: currentFacingMode, width: {ideal:1280}, height: {ideal:720} },
-        audio: false
-      });
-      liveVideo.srcObject = stream;
-      await liveVideo.play();
-
-      frameBuffer = [];
-      resizeCanvas();
-
-      captureInterval = setInterval(captureFrame, CAPTURE_INTERVAL);
-      rafId = requestAnimationFrame(drawLoop);
+      const nextStream = await openCamera(currentFacingMode);
+      await useStream(nextStream);
 
       overlay.classList.add('hidden');
-      stopBtn.style.display = 'block';
+      stopBtn.style.display = 'flex';
       delayBadge.style.display = 'flex';
       bufferIndicator.style.display = 'block';
+      warmupText.style.display = 'block';
       fullscreenBtn.style.display = 'flex';
-      delayBadgeText.textContent = `${delaySeconds}s 遅延`;
-      statusText.textContent = '撮影中';
+      delayBadgeText.textContent = `${delaySeconds}秒前の映像`;
+    updateControlState();
+      statusText.textContent = '準備中';
       statusDot.classList.add('live');
       isRunning = true;
     } catch (err) {
-      let msg = 'カメラを起動できませんでした。';
-      if      (err.name === 'NotAllowedError') msg = 'カメラへのアクセスが拒否されました。ブラウザ設定で許可してください。';
-      else if (err.name === 'NotFoundError')   msg = 'カメラが見つかりませんでした。';
-      else if (err.message)                    msg = err.message;
-      errorMsg.textContent = msg;
+      errorMsg.textContent = cameraErrorMessage(err);
     }
   }
 
+  async function openCamera(facingMode) {
+    return navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode,
+        width: { ideal: IS_IOS ? 960 : 1280 },
+        height: { ideal: IS_IOS ? 540 : 720 }
+      },
+      audio: false
+    });
+  }
+
+  async function useStream(nextStream) {
+    stopCapture({ keepStream: true });
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = nextStream;
+    liveVideo.srcObject = stream;
+    await liveVideo.play();
+
+    isRunning = true;
+    frameBuffer = [];
+    lastDrawnFrame = null;
+    captureWidth = 0;
+    captureHeight = 0;
+    resizeCanvas();
+    scheduleCapture(0);
+    rafId = requestAnimationFrame(drawLoop);
+  }
+
+  function cameraErrorMessage(err) {
+    if (err && err.name === 'NotAllowedError') return 'カメラへのアクセスが拒否されました。ブラウザ設定で許可してください。';
+    if (err && err.name === 'NotFoundError') return 'カメラが見つかりませんでした。';
+    if (err && err.name === 'OverconstrainedError') return 'この端末では選択したカメラを使えません。';
+    if (err && err.message) return err.message;
+    return 'カメラを起動できませんでした。';
+  }
+
   // ── フレームキャプチャ ──
+  function scheduleCapture(delay) {
+    if (!isRunning || !stream) return;
+    captureTimer = setTimeout(captureFrame, delay);
+  }
+
   function captureFrame() {
-    if (!isRunning) return;
+    if (!isRunning || !stream) return;
+    if (captureInFlight) {
+      scheduleCapture(CAPTURE_INTERVAL);
+      return;
+    }
+
     const vw = liveVideo.videoWidth;
     const vh = liveVideo.videoHeight;
     // videoWidth/videoHeight が確定するまで待つ（iOS では遅れることがある）
-    if (!vw || !vh) return;
-
-    // 毎フレームで実際の動画サイズに合わせてキャプチャキャンバスをリサイズ
-    // → loadedmetadata 時点ではサイズが未確定なためここで設定する
-    const maxDim = 480;
-    if (vw >= vh) {
-      capCanvas.width  = maxDim;
-      capCanvas.height = Math.round(maxDim * vh / vw);
-    } else {
-      capCanvas.width  = Math.round(maxDim * vw / vh);
-      capCanvas.height = maxDim;
+    if (!vw || !vh) {
+      scheduleCapture(CAPTURE_INTERVAL);
+      return;
     }
 
-    capCtx.drawImage(liveVideo, 0, 0, capCanvas.width, capCanvas.height);
+    const maxDim = CAPTURE_MAX_DIM;
+    let nextWidth;
+    let nextHeight;
+    if (vw >= vh) {
+      nextWidth  = maxDim;
+      nextHeight = Math.round(maxDim * vh / vw);
+    } else {
+      nextWidth  = Math.round(maxDim * vw / vh);
+      nextHeight = maxDim;
+    }
+    if (nextWidth !== captureWidth || nextHeight !== captureHeight) {
+      captureWidth = nextWidth;
+      captureHeight = nextHeight;
+      capCanvas.width = captureWidth;
+      capCanvas.height = captureHeight;
+    }
 
-    const jpeg = capCanvas.toDataURL('image/jpeg', 0.65);
+    const capturedAt = performance.now();
+    capCtx.drawImage(liveVideo, 0, 0, captureWidth, captureHeight);
+    captureInFlight = true;
+
+    if (capCanvas.toBlob) {
+      capCanvas.toBlob((blob) => {
+        captureInFlight = false;
+        if (blob && isRunning) addBlobFrame(capturedAt, blob);
+        trimBuffer();
+        scheduleCapture(CAPTURE_INTERVAL);
+      }, 'image/jpeg', JPEG_QUALITY);
+    } else {
+      const img = new Image();
+      const frame = { t: capturedAt, img, ready: false };
+      img.onload = () => { frame.ready = true; };
+      img.src = capCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
+      frameBuffer.push(frame);
+      captureInFlight = false;
+      trimBuffer();
+      scheduleCapture(CAPTURE_INTERVAL);
+    }
+  }
+
+  function addBlobFrame(t, blob) {
+    const url = URL.createObjectURL(blob);
     const img = new Image();
-    img.src = jpeg;
-    frameBuffer.push({ t: Date.now(), img });
+    const frame = { t, img, url, ready: false };
+    img.onload = () => { frame.ready = true; };
+    img.onerror = () => releaseFrame(frame);
+    img.src = url;
+    frameBuffer.push(frame);
+  }
 
-    // 古いフレームを破棄（遅延 + 余裕6秒）
-    const cutoff = Date.now() - (delaySeconds + 6) * 1000;
+  function releaseFrame(frame) {
+    if (frame && frame.url) {
+      URL.revokeObjectURL(frame.url);
+      frame.url = '';
+    }
+  }
+
+  function trimBuffer() {
+    const cutoff = performance.now() - (delaySeconds + BUFFER_MARGIN_SECONDS) * 1000;
     while (frameBuffer.length > 0 && frameBuffer[0].t < cutoff) {
-      frameBuffer.shift();
+      releaseFrame(frameBuffer.shift());
+    }
+    const hardMax = Math.ceil((delaySeconds + BUFFER_MARGIN_SECONDS + 1) * 1000 / CAPTURE_INTERVAL);
+    while (frameBuffer.length > hardMax) {
+      releaseFrame(frameBuffer.shift());
     }
   }
 
@@ -521,13 +627,26 @@
     rafId = requestAnimationFrame(drawLoop);
     if (!isRunning || frameBuffer.length === 0) return;
 
-    // 目標時刻（現在 - 遅延秒数）に最も近い過去フレームを取得
-    const targetTime = Date.now() - delaySeconds * 1000;
-    let frame = frameBuffer[0]; // バッファが溜まるまでは最古フレームを表示
-    for (let i = frameBuffer.length - 1; i >= 0; i--) {
-      if (frameBuffer[i].t <= targetTime) { frame = frameBuffer[i]; break; }
+    const bufferedSeconds = (frameBuffer[frameBuffer.length - 1].t - frameBuffer[0].t) / 1000;
+    bufferText.textContent = bufferedSeconds.toFixed(1) + 's';
+    if (bufferedSeconds < delaySeconds) {
+      warmupText.style.display = 'block';
+      warmupText.querySelector('strong').textContent = `${bufferedSeconds.toFixed(1)}s / ${delaySeconds}s`;
+      statusText.textContent = '準備中';
+      return;
     }
+
+    warmupText.style.display = 'none';
+    statusText.textContent = '撮影中';
+
+    const targetTime = performance.now() - delaySeconds * 1000;
+    let frame = null;
+    for (let i = frameBuffer.length - 1; i >= 0; i--) {
+      if (frameBuffer[i].t <= targetTime && frameBuffer[i].ready) { frame = frameBuffer[i]; break; }
+    }
+    if (!frame) frame = lastDrawnFrame;
     if (!frame || !frame.img.complete || !frame.img.naturalWidth) return;
+    lastDrawnFrame = frame;
 
     const cw = canvas.width;
     const ch = canvas.height;
@@ -550,22 +669,19 @@
     if (mirrored)    ctx.scale(-1, 1);
     ctx.drawImage(frame.img, -fw * scale / 2, -fh * scale / 2, fw * scale, fh * scale);
     ctx.restore();
-
-    // バッファ秒数を表示
-    if (frameBuffer.length > 1) {
-      const dur = (frameBuffer[frameBuffer.length - 1].t - frameBuffer[0].t) / 1000;
-      bufferText.textContent = dur.toFixed(1) + 's';
-    }
   }
 
   // ── 停止・クリーンアップ ──
-  function stopCapture() {
+  function stopCapture(options = {}) {
     isRunning = false;
-    if (captureInterval) { clearInterval(captureInterval); captureInterval = null; }
+    if (captureTimer) { clearTimeout(captureTimer); captureTimer = null; }
+    captureInFlight = false;
     if (rafId)           { cancelAnimationFrame(rafId);    rafId = null; }
-    if (stream)          { stream.getTracks().forEach(t => t.stop()); stream = null; }
-    liveVideo.srcObject = null;
+    if (stream && !options.keepStream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    if (!options.keepStream) liveVideo.srcObject = null;
+    frameBuffer.forEach(releaseFrame);
     frameBuffer = [];
+    lastDrawnFrame = null;
   }
 
   window.addEventListener('beforeunload', stopCapture);
