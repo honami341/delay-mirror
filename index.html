@@ -8,20 +8,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="エコーミラー">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#070B14">
 <title>エコーミラー — 10秒前映像</title>
 <style>
   :root {
-    --bg: #050706;
-    --surface: #101411;
-    --surface-2: #171c18;
-    --text: #f4f7f1;
-    --muted: #a7b0a6;
-    --soft: #6f7b70;
-    --line: rgba(244,247,241,.13);
-    --ready: #8fd26a;
-    --focus: #f0c35a;
-    --danger: #e35b4f;
+    --bg: #070B14;
+    --surface: #101827;
+    --surface-2: #172236;
+    --text: #EAF1FF;
+    --muted: #94A7C4;
+    --soft: #4E5F7C;
+    --line: rgba(234,241,255,.14);
+    --ready: #60A5FA;
+    --focus: #22D3EE;
+    --danger: #FF5C7A;
     --shadow: 0 -12px 30px rgba(0,0,0,.28);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -46,7 +46,7 @@
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--line);
-    background: #080b09;
+    background: #0A1020;
   }
   .brand { display: flex; flex-direction: column; gap: 2px; }
   .title { font-size: 14px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
@@ -70,14 +70,14 @@
     background: var(--soft);
     transition: background .2s, box-shadow .2s;
   }
-  .status-dot.live { background: var(--ready); box-shadow: 0 0 0 4px rgba(143,210,106,.14); }
+  .status-dot.live { background: var(--ready); box-shadow: 0 0 0 4px rgba(96,165,250,.16); }
   .video-stage {
     min-height: 0;
     position: relative;
     overflow: hidden;
-    background: #000;
+    background: #04070E;
   }
-  #playback { width: 100%; height: 100%; display: block; background: #000; }
+  #playback { width: 100%; height: 100%; display: block; background: #04070E; }
   #liveVideo { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
   .overlay {
     position: absolute;
@@ -90,7 +90,7 @@
     padding: 34px 24px;
     z-index: 10;
     text-align: center;
-    background: radial-gradient(circle at 50% 35%, rgba(46,62,47,.92), rgba(5,7,6,.98) 60%);
+    background: radial-gradient(circle at 50% 35%, rgba(23,34,54,.92), rgba(7,11,20,.98) 60%);
     transition: opacity .25s;
   }
   .overlay.hidden { opacity: 0; pointer-events: none; }
@@ -103,11 +103,11 @@
     border: none;
     border-radius: 8px;
     background: var(--ready);
-    color: #061006;
+    color: #06121F;
     font-size: 17px;
     font-weight: 800;
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(143,210,106,.24);
+    box-shadow: 0 8px 24px rgba(96,165,250,.26);
   }
   .start-btn:active, .btn:active, .switch:active { transform: scale(.98); }
   .error-msg { color: #ffb1aa; font-size: 13px; max-width: 340px; line-height: 1.5; }
@@ -115,7 +115,7 @@
     position: absolute;
     z-index: 5;
     border: 1px solid rgba(255,255,255,.16);
-    background: rgba(5,7,6,.78);
+    background: rgba(7,11,20,.80);
     color: var(--muted);
     border-radius: 8px;
     font-size: 12px;
@@ -136,7 +136,7 @@
     left: 50%; bottom: 14px;
     transform: translateX(-50%);
     padding: 10px 14px;
-    background: rgba(16,20,17,.9);
+    background: rgba(16,24,39,.92);
     color: var(--text);
     font-weight: 700;
   }
@@ -146,7 +146,7 @@
     bottom: max(16px, env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(5,7,6,.74);
+    background: rgba(7,11,20,.76);
     border: 1px solid var(--line);
     color: var(--text);
     padding: 8px 14px;
@@ -187,7 +187,7 @@
     width: 100%;
     -webkit-appearance: none; appearance: none;
     height: 8px;
-    background: linear-gradient(90deg, var(--ready), #d7ddcf);
+    background: linear-gradient(90deg, var(--ready), #CBD5E1);
     border-radius: 999px;
     outline: none;
   }
@@ -248,7 +248,7 @@
   .btn .icon { font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center; }
   .btn .icon svg { width: 22px; height: 22px; display: block; }
   .btn:disabled { opacity: .45; }
-  .btn.danger { background: rgba(227,91,79,.12); border-color: rgba(227,91,79,.45); color: #ffd8d4; }
+  .btn.danger { background: rgba(255,92,122,.14); border-color: rgba(255,92,122,.45); color: #FFD8DE; }
   .toggle-row { display: none; }
   .switch { display: none; }
   @media (orientation: landscape) and (max-height: 560px) {
