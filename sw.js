@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'echo-mirror-v1';
+const CACHE_VERSION = 'echo-mirror-v2';
 const CACHE_ASSETS = [
   './',
   './index.html',
@@ -26,17 +26,33 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+const putInCache = (request, response) => {
+  if (response && response.ok && new URL(request.url).origin === location.origin) {
+    const clone = response.clone();
+    caches.open(CACHE_VERSION).then((cache) => cache.put(request, clone));
+  }
+  return response;
+};
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  // ページ本体はネットワーク優先。更新をすぐ受け取れるようにする（圏外ではキャッシュへ）
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => putInCache(event.request, response))
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // それ以外（アイコン等）はキャッシュ優先で速く
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        if (response.ok && new URL(event.request.url).origin === location.origin) {
-          const clone = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      }).catch(() => cached);
+      return cached || fetch(event.request)
+        .then((response) => putInCache(event.request, response))
+        .catch(() => cached);
     })
   );
 });
