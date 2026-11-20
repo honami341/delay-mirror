@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'echo-mirror-v4';
+const CACHE_VERSION = 'echo-mirror-v5';
 const CACHE_ASSETS = [
   './',
   './index.html',

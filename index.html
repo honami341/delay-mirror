@@ -251,6 +251,49 @@
   .btn.danger { background: rgba(255,92,122,.14); border-color: rgba(255,92,122,.45); color: #FFD8DE; }
   .toggle-row { display: none; }
   .switch { display: none; }
+  /* ── 画質と滑らかさ（詳細設定）── */
+  .advanced { margin-top: 12px; border-top: 1px solid var(--line); }
+  .advanced summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 42px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 750;
+  }
+  .advanced summary::-webkit-details-marker { display: none; }
+  .advanced summary:focus-visible, .adv-field select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .adv-summary-right { display: inline-flex; align-items: center; gap: 8px; color: var(--text); font-weight: 650; font-variant-numeric: tabular-nums; }
+  .adv-summary-right svg { width: 16px; height: 16px; display: block; transition: transform .2s; }
+  .advanced[open] .adv-summary-right svg { transform: rotate(180deg); }
+  .adv-body { padding-bottom: 4px; }
+  .adv-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+  .adv-field label { display: block; color: var(--muted); font-size: 11px; font-weight: 700; margin-bottom: 5px; }
+  .adv-field select {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+  .stat { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; min-width: 0; }
+  .stat small { display: block; color: var(--muted); font-size: 10px; font-weight: 700; }
+  .stat strong { display: block; margin-top: 3px; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .adv-note { margin-top: 8px; color: var(--muted); font-size: 11px; line-height: 1.6; }
   @media (orientation: landscape) and (max-height: 560px) {
     body { grid-template-columns: 1fr 220px; grid-template-rows: auto 1fr; }
     .header { grid-column: 1 / 3; min-height: 40px; padding: 6px 12px; }
@@ -261,6 +304,10 @@
     .button-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .delay-value { font-size: 25px; }
     .btn { min-height: 50px; }
+    .adv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .adv-grid .adv-field:first-child { grid-column: 1 / 3; }
+    .stat { padding: 6px; }
+    .stat strong { font-size: 12px; }
   }
   @media (max-width: 520px) {
     .header { padding: 8px 12px; }
@@ -313,7 +360,7 @@
         <span>遅延時間</span>
         <div class="delay-value"><span id="delayDisplay">10</span><small>秒前</small></div>
       </div>
-      <input type="range" id="delaySlider" min="2" max="30" step="1" value="10" aria-label="遅延時間">
+      <input type="range" id="delaySlider" min="2" max="90" step="1" value="10" aria-label="遅延時間">
       <div class="state-strip">
         <span class="state-pill" id="cameraState">インカメラ</span>
         <span class="state-pill" id="mirrorState">ミラー ON</span>
@@ -336,6 +383,54 @@
       <button class="btn danger" id="stopBtn" type="button" style="display:none;"><span class="icon">■</span><span>停止</span></button>
     </div>
   </div>
+  <details class="advanced" id="advanced">
+    <summary>
+      <span>画質と滑らかさ</span>
+      <span class="adv-summary-right">
+        <span id="advSummary">安定</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </span>
+    </summary>
+    <div class="adv-body">
+      <div class="adv-grid">
+        <div class="adv-field">
+          <label for="presetSelect">設定</label>
+          <select id="presetSelect">
+            <option value="stable">安定（360px・8fps）</option>
+            <option value="smooth">なめらか（480px・15fps）</option>
+            <option value="clear">きれい（640px・15fps）</option>
+            <option value="high">高性能向け（720px・30fps）</option>
+            <option value="custom">カスタム</option>
+          </select>
+        </div>
+        <div class="adv-field">
+          <label for="sizeSelect">画像の長辺</label>
+          <select id="sizeSelect">
+            <option value="360">360px</option>
+            <option value="480">480px</option>
+            <option value="640">640px</option>
+            <option value="720">720px</option>
+          </select>
+        </div>
+        <div class="adv-field">
+          <label for="fpsSelect">目標fps</label>
+          <select id="fpsSelect">
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
+          </select>
+        </div>
+      </div>
+      <div class="stat-grid" aria-live="off">
+        <div class="stat"><small>実測取得</small><strong id="statFps">—</strong></div>
+        <div class="stat"><small>画像サイズ</small><strong id="statSize">—</strong></div>
+        <div class="stat"><small>使用メモリ</small><strong id="statMem">—</strong></div>
+      </div>
+      <p class="adv-note" id="advNote">実測取得は直近約5秒の平均です。画質・fps・遅延時間を上げるほど、端末が重く・熱くなります。古いiPadは「安定」がおすすめです。</p>
+    </div>
+  </details>
 </div>
 <script>
   const liveVideo       = document.getElementById('liveVideo');
@@ -365,6 +460,14 @@
   const fsIcon          = document.getElementById('fsIcon');
   const tapHint         = document.getElementById('tapHint');
   const fsLabel         = document.getElementById('fsLabel');
+  const advanced        = document.getElementById('advanced');
+  const advSummary      = document.getElementById('advSummary');
+  const presetSelect    = document.getElementById('presetSelect');
+  const sizeSelect      = document.getElementById('sizeSelect');
+  const fpsSelect       = document.getElementById('fpsSelect');
+  const statFps         = document.getElementById('statFps');
+  const statSize        = document.getElementById('statSize');
+  const statMem         = document.getElementById('statMem');
 
   // 非表示のキャプチャ用キャンバス
   const capCanvas = document.createElement('canvas');
@@ -374,7 +477,16 @@
   let captureTimer = null;
   let captureInFlight = false;
   let rafId = null;
-  let frameBuffer = []; // [{t: ms, img: HTMLImageElement, url?: string, ready: boolean}]
+  // フレームは圧縮したまま持ち、表示する1枚だけをその都度デコードする（長い遅延でもメモリを食わない）
+  let frameBuffer = []; // [{t: ms, blob?: Blob, dataUrl?: string, size: bytes}]
+  let bufferBytes = 0;
+  let displayImg = null;     // いま描いている、デコード済みの画像
+  let displayFrame = null;   // displayImg の元フレーム
+  let decodingFrame = null;  // デコード中のフレーム（同時に1枚だけ）
+  let decodeToken = 0;       // バッファを捨てたら古いデコード結果を無視するための番号
+  let captureTimes = [];     // 実測fps用（直近約5秒）
+  let nextCaptureAt = 0;
+  let captureGen = 0;        // 停止のたびに増やし、古いキャプチャ結果を無視する
   let delaySeconds = 10;
   let isRunning = false;
   let mirrored = true;
@@ -383,7 +495,6 @@
   let isUIHidden  = false;
   let captureWidth = 0;
   let captureHeight = 0;
-  let lastDrawnFrame = null;
 
   // 記号（⛶ など）は端末のフォントに無いと豆腐になるため、アイコンはSVGで持つ
   const SVG_EXPAND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H4.5A1.5 1.5 0 0 0 3 4.5V9"/><path d="M15 3h4.5A1.5 1.5 0 0 1 21 4.5V9"/><path d="M15 21h4.5a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M9 21H4.5A1.5 1.5 0 0 1 3 19.5V15"/></svg>';
@@ -409,10 +520,91 @@
   }
   const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const CAPTURE_INTERVAL = IS_IOS ? 125 : 100; // 古い iPad は高fpsより安定優先
-  const CAPTURE_MAX_DIM = IS_IOS ? 360 : 480;
   const JPEG_QUALITY = IS_IOS ? 0.52 : 0.62;
   const BUFFER_MARGIN_SECONDS = 2;
+  const MAX_FPS = 30;
+  // 圧縮済みフレームの合計がこれを超えたら止める（落ちる前に知らせる）
+  const MEMORY_LIMIT = (IS_IOS ? 80 : 120) * 1024 * 1024;
+
+  // ── 画質と滑らかさ ──
+  // 古い iPad は高fpsより止まらないことを優先し、既定は「安定」
+  const PRESETS = {
+    stable: { size: 360, fps: 8,  label: '安定' },
+    smooth: { size: 480, fps: 15, label: 'なめらか' },
+    clear:  { size: 640, fps: 15, label: 'きれい' },
+    high:   { size: 720, fps: 30, label: '高性能向け' }
+  };
+  const DEFAULT_PRESET = IS_IOS ? 'stable' : 'smooth';
+  const SETTINGS_KEY = 'echoMirror.quality.v1';
+  let captureMaxDim = PRESETS[DEFAULT_PRESET].size;
+  let targetFps = PRESETS[DEFAULT_PRESET].fps;
+
+  function loadQuality() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); } catch (err) { saved = null; }
+    const preset = saved && (PRESETS[saved.preset] || saved.preset === 'custom') ? saved.preset : DEFAULT_PRESET;
+    const base = PRESETS[preset] || PRESETS[DEFAULT_PRESET];
+    const size = saved && preset === 'custom' ? +saved.size : base.size;
+    const fps = saved && preset === 'custom' ? +saved.fps : base.fps;
+    presetSelect.value = preset;
+    sizeSelect.value = String(size);
+    fpsSelect.value = String(fps);
+    // 保存値が選択肢に無いときは既定に戻す
+    if (sizeSelect.value !== String(size) || fpsSelect.value !== String(fps)) {
+      presetSelect.value = DEFAULT_PRESET;
+      sizeSelect.value = String(PRESETS[DEFAULT_PRESET].size);
+      fpsSelect.value = String(PRESETS[DEFAULT_PRESET].fps);
+    }
+    applyQuality(false);
+  }
+  function applyQuality(save) {
+    captureMaxDim = parseInt(sizeSelect.value, 10);
+    targetFps = parseInt(fpsSelect.value, 10);
+    const p = PRESETS[presetSelect.value];
+    advSummary.textContent = (p ? p.label : 'カスタム') + ' ・ ' + captureMaxDim + 'px / ' + targetFps + 'fps';
+    if (save) {
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify({ preset: presetSelect.value, size: captureMaxDim, fps: targetFps }));
+      } catch (err) { /* 保存できなくても今回の設定は効く */ }
+    }
+    // 次のキャプチャから新しい間隔で撮る（ためた映像はそのまま使う）
+    if (isRunning) {
+      if (captureTimer) { clearTimeout(captureTimer); captureTimer = null; }
+      nextCaptureAt = performance.now();
+      if (!captureInFlight) scheduleCapture(0);
+    }
+  }
+  presetSelect.addEventListener('change', () => {
+    const p = PRESETS[presetSelect.value];
+    if (p) { sizeSelect.value = String(p.size); fpsSelect.value = String(p.fps); }
+    applyQuality(true);
+  });
+  [sizeSelect, fpsSelect].forEach((el) => el.addEventListener('change', () => {
+    presetSelect.value = 'custom';
+    applyQuality(true);
+  }));
+  try { if (localStorage.getItem(SETTINGS_KEY + '.open') === '1') advanced.open = true; } catch (err) { /* 無視 */ }
+  advanced.addEventListener('toggle', () => {
+    try { localStorage.setItem(SETTINGS_KEY + '.open', advanced.open ? '1' : '0'); } catch (err) { /* 無視 */ }
+    requestAnimationFrame(resizeCanvas);
+  });
+
+  function resetStats() {
+    captureTimes = [];
+    statFps.textContent = '—';
+    statSize.textContent = '—';
+    statMem.textContent = '—';
+  }
+  function updateStats(t) {
+    captureTimes.push(t);
+    while (captureTimes.length && captureTimes[0] < t - 5000) captureTimes.shift();
+    statFps.textContent = captureTimes.length > 1
+      ? ((captureTimes.length - 1) * 1000 / (captureTimes[captureTimes.length - 1] - captureTimes[0])).toFixed(1) + ' fps'
+      : '—';
+    statSize.textContent = captureWidth + '×' + captureHeight;
+    statMem.textContent = (bufferBytes / 1048576).toFixed(0) + ' / ' + Math.round(MEMORY_LIMIT / 1048576) + 'MB';
+  }
+  loadQuality();
 
   function toggleUI() {
     isUIHidden = !isUIHidden;
@@ -569,11 +761,11 @@
     await liveVideo.play();
 
     isRunning = true;
-    frameBuffer = [];
-    lastDrawnFrame = null;
+    clearBuffer();
     captureWidth = 0;
     captureHeight = 0;
     resizeCanvas();
+    nextCaptureAt = performance.now();
     scheduleCapture(0);
     rafId = requestAnimationFrame(drawLoop);
   }
@@ -592,10 +784,19 @@
     captureTimer = setTimeout(captureFrame, delay);
   }
 
+  // 目標fpsの間隔で次を予約する。圧縮に時間がかかった分は詰めて、実測が目標に近づくようにする
+  function scheduleNextCapture() {
+    const now = performance.now();
+    nextCaptureAt += 1000 / targetFps;
+    if (nextCaptureAt < now) nextCaptureAt = now;
+    scheduleCapture(nextCaptureAt - now);
+  }
+
   function captureFrame() {
+    captureTimer = null;
     if (!isRunning || !stream) return;
     if (captureInFlight) {
-      scheduleCapture(CAPTURE_INTERVAL);
+      scheduleCapture(1000 / targetFps);
       return;
     }
 
@@ -603,11 +804,12 @@
     const vh = liveVideo.videoHeight;
     // videoWidth/videoHeight が確定するまで待つ（iOS では遅れることがある）
     if (!vw || !vh) {
-      scheduleCapture(CAPTURE_INTERVAL);
+      nextCaptureAt = performance.now();
+      scheduleCapture(100);
       return;
     }
 
-    const maxDim = CAPTURE_MAX_DIM;
+    const maxDim = captureMaxDim;
     let nextWidth;
     let nextHeight;
     if (vw >= vh) {
@@ -627,52 +829,78 @@
     const capturedAt = performance.now();
     capCtx.drawImage(liveVideo, 0, 0, captureWidth, captureHeight);
     captureInFlight = true;
+    const gen = captureGen;
+    const token = decodeToken;
 
     if (capCanvas.toBlob) {
       capCanvas.toBlob((blob) => {
+        // 停止・カメラ切替のあとに届いた古い結果は捨てる（予約は新しいループが持つ）
+        if (gen !== captureGen || !isRunning) return;
         captureInFlight = false;
-        if (blob && isRunning) addBlobFrame(capturedAt, blob);
-        trimBuffer();
-        scheduleCapture(CAPTURE_INTERVAL);
+        // バッファを溜め直した直後の古いフレームは入れない
+        if (blob && token === decodeToken) addFrame({ t: capturedAt, blob, size: blob.size });
+        if (!trimBuffer()) return;
+        scheduleNextCapture();
       }, 'image/jpeg', JPEG_QUALITY);
     } else {
-      const img = new Image();
-      const frame = { t: capturedAt, img, ready: false };
-      img.onload = () => { frame.ready = true; };
-      img.src = capCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
-      frameBuffer.push(frame);
+      const dataUrl = capCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
       captureInFlight = false;
-      trimBuffer();
-      scheduleCapture(CAPTURE_INTERVAL);
+      addFrame({ t: capturedAt, dataUrl, size: dataUrl.length });
+      if (!trimBuffer()) return;
+      scheduleNextCapture();
     }
   }
 
-  function addBlobFrame(t, blob) {
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    const frame = { t, img, url, ready: false };
-    img.onload = () => { frame.ready = true; };
-    img.onerror = () => releaseFrame(frame);
-    img.src = url;
+  function addFrame(frame) {
     frameBuffer.push(frame);
+    bufferBytes += frame.size;
+    updateStats(frame.t);
   }
 
-  function releaseFrame(frame) {
-    if (frame && frame.url) {
-      URL.revokeObjectURL(frame.url);
-      frame.url = '';
-    }
+  function dropOldestFrame() {
+    const frame = frameBuffer.shift();
+    if (frame) bufferBytes -= frame.size;
   }
 
+  function clearBuffer() {
+    frameBuffer = [];
+    bufferBytes = 0;
+    displayImg = null;
+    displayFrame = null;
+    decodingFrame = null;
+    decodeToken++;
+    resetStats();
+  }
+
+  // 戻り値 false = メモリ上限で停止した
   function trimBuffer() {
     const cutoff = performance.now() - (delaySeconds + BUFFER_MARGIN_SECONDS) * 1000;
-    while (frameBuffer.length > 0 && frameBuffer[0].t < cutoff) {
-      releaseFrame(frameBuffer.shift());
+    while (frameBuffer.length > 0 && frameBuffer[0].t < cutoff) dropOldestFrame();
+    const hardMax = Math.ceil((delaySeconds + BUFFER_MARGIN_SECONDS + 1) * MAX_FPS);
+    while (frameBuffer.length > hardMax) dropOldestFrame();
+    if (bufferBytes > MEMORY_LIMIT) {
+      resetToIdle('メモリの上限に近づいたため停止しました。「画質と滑らかさ」を下げるか、遅延時間を短くしてもう一度お試しください。');
+      return false;
     }
-    const hardMax = Math.ceil((delaySeconds + BUFFER_MARGIN_SECONDS + 1) * 1000 / CAPTURE_INTERVAL);
-    while (frameBuffer.length > hardMax) {
-      releaseFrame(frameBuffer.shift());
-    }
+    return true;
+  }
+
+  // 表示したいフレームを1枚だけデコードする。終わるまでは前の画像を描き続ける
+  function requestDecode(frame) {
+    if (frame === displayFrame || frame === decodingFrame || decodingFrame) return;
+    decodingFrame = frame;
+    const token = decodeToken;
+    const img = new Image();
+    const url = frame.blob ? URL.createObjectURL(frame.blob) : '';
+    const done = (ok) => {
+      if (url) URL.revokeObjectURL(url);
+      if (token !== decodeToken) return;
+      if (ok) { displayImg = img; displayFrame = frame; }
+      decodingFrame = null;
+    };
+    img.onload = () => done(true);
+    img.onerror = () => done(false);
+    img.src = url || frame.dataUrl;
   }
 
   // ── 描画ループ ──
@@ -695,18 +923,18 @@
     const targetTime = performance.now() - delaySeconds * 1000;
     let frame = null;
     for (let i = frameBuffer.length - 1; i >= 0; i--) {
-      if (frameBuffer[i].t <= targetTime && frameBuffer[i].ready) { frame = frameBuffer[i]; break; }
+      if (frameBuffer[i].t <= targetTime) { frame = frameBuffer[i]; break; }
     }
-    if (!frame) frame = lastDrawnFrame;
-    if (!frame || !frame.img.complete || !frame.img.naturalWidth) return;
-    lastDrawnFrame = frame;
+    if (frame) requestDecode(frame);
+    const img = displayImg;
+    if (!img || !img.naturalWidth) return;
 
     const cw = canvas.width;
     const ch = canvas.height;
     if (!cw || !ch) return;
 
-    const fw = frame.img.naturalWidth;
-    const fh = frame.img.naturalHeight;
+    const fw = img.naturalWidth;
+    const fh = img.naturalHeight;
     const isRot90 = (rotationDeg === 90 || rotationDeg === 270);
 
     // 90°/270° 回転時はキャンバスへのフィットで幅・高さが入れ替わる
@@ -720,21 +948,20 @@
     // ① まず回転（方向補正）、② 次にミラー（左右反転）の順で適用
     if (rotationDeg) ctx.rotate(rotationDeg * Math.PI / 180);
     if (mirrored)    ctx.scale(-1, 1);
-    ctx.drawImage(frame.img, -fw * scale / 2, -fh * scale / 2, fw * scale, fh * scale);
+    ctx.drawImage(img, -fw * scale / 2, -fh * scale / 2, fw * scale, fh * scale);
     ctx.restore();
   }
 
   // ── 停止・クリーンアップ ──
   function stopCapture(options = {}) {
     isRunning = false;
+    captureGen++;
     if (captureTimer) { clearTimeout(captureTimer); captureTimer = null; }
     captureInFlight = false;
     if (rafId)           { cancelAnimationFrame(rafId);    rafId = null; }
     if (stream && !options.keepStream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     if (!options.keepStream) liveVideo.srcObject = null;
-    frameBuffer.forEach(releaseFrame);
-    frameBuffer = [];
-    lastDrawnFrame = null;
+    clearBuffer();
   }
 
   // ── 画面ロックやアプリ切替から戻ったときの復帰 ──
@@ -754,9 +981,8 @@
       return;
     }
     try { await liveVideo.play(); } catch (err) { /* 再生が拒否されても次の復帰で拾う */ }
-    frameBuffer.forEach(releaseFrame);
-    frameBuffer = [];
-    lastDrawnFrame = null;
+    clearBuffer();
+    nextCaptureAt = performance.now();
     statusText.textContent = '準備中';
     warmupText.style.display = 'block';
   });
