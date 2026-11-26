@@ -110,7 +110,9 @@
     box-shadow: 0 8px 24px rgba(96,165,250,.26);
   }
   .start-btn:active, .btn:active, .switch:active { transform: scale(.98); }
-  .guide-link { display: inline-flex; align-items: center; min-height: 40px; color: var(--ready); font-size: 14px; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+  .guide-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 220px; min-height: 50px; padding: 0 18px; border: 2px solid rgba(96,165,250,.7); border-radius: 8px; background: rgba(96,165,250,.10); color: #CFE3FF; font-size: 16px; font-weight: 800; text-decoration: none; }
+  .guide-link svg { width: 20px; height: 20px; flex: none; }
+  .guide-link:active { transform: scale(.98); }
   .error-msg { color: #ffb1aa; font-size: 13px; max-width: 340px; line-height: 1.5; }
   .delay-badge, .buffer-indicator, .warmup {
     position: absolute;
@@ -226,6 +228,16 @@
     white-space: nowrap;
   }
   body.ui-hidden .header, body.ui-hidden .controls { display: none; }
+  /* カメラ開始前は操作欄を出さず、開始ボタンを画面いっぱいの真ん中に置く */
+  body.idle .controls { display: none; }
+  body.idle .video-stage { grid-column: 1 / -1; grid-row: 2 / -1; }
+  /* 実測値と説明（押したときだけ開く） */
+  .adv-more { margin-top: 8px; }
+  .adv-more summary { list-style: none; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; color: var(--muted); font-size: 12px; font-weight: 750; cursor: pointer; }
+  .adv-more summary::-webkit-details-marker { display: none; }
+  .adv-more summary svg { width: 14px; height: 14px; transition: transform .2s; }
+  .adv-more[open] summary svg { transform: rotate(180deg); }
+  .adv-more .stat-grid { margin-top: 4px; }
   body.ui-hidden .video-stage { position: fixed; inset: 0; z-index: 50; }
   body.ui-hidden #tapHint { display: flex; animation: fadeHint 3s ease forwards; }
   @keyframes fadeHint { 0%,65%{opacity:1} 100%{opacity:0} }
@@ -389,7 +401,7 @@
   }
 </style>
 </head>
-<body>
+<body class="idle">
 <div class="header">
   <div class="brand">
     <div class="title">エコーミラー</div>
@@ -423,7 +435,10 @@
     <h1>10秒前の自分を見る</h1>
     <p>動いた直後に画面を見るだけで、フォームや姿勢をその場で確認できます。</p>
     <button class="start-btn" id="startBtn">カメラを開始</button>
-    <a class="guide-link" href="guide.html">はじめての方へ：使い方を見る</a>
+    <a class="guide-link" href="guide.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor" stroke="none"/></svg>
+      使い方を見る（動画つき）
+    </a>
     <div class="error-msg" id="errorMsg"></div>
   </div>
 </div>
@@ -499,13 +514,19 @@
           </select>
         </div>
       </div>
-      <div class="stat-grid" aria-live="off">
-        <div class="stat"><small>実測取得</small><strong id="statFps">—</strong></div>
-        <div class="stat"><small>画像サイズ</small><strong id="statSize">—</strong></div>
-        <div class="stat"><small>使用メモリ</small><strong id="statMem">—</strong></div>
-      </div>
-      <p class="adv-note" id="advNote"><strong>fps</strong>＝1秒間に撮る写真の枚数です。パラパラ漫画のページ数と同じで、多いほど動きがなめらかに見えます（12fpsなら1秒に12枚）。実測取得は、実際に撮れた枚数（直近約5秒の平均）。画質・fps・遅延時間を上げるほど端末が重く・熱くなるので、古いiPadは「安定」がおすすめです。</p>
-      <a class="adv-link" href="guide.html#quality">画質の選び方と10秒保存（動画つきガイド）</a>
+      <details class="adv-more" id="advMore">
+        <summary>
+          <span>実測値と説明</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="stat-grid" aria-live="off">
+          <div class="stat"><small>実測取得</small><strong id="statFps">—</strong></div>
+          <div class="stat"><small>画像サイズ</small><strong id="statSize">—</strong></div>
+          <div class="stat"><small>使用メモリ</small><strong id="statMem">—</strong></div>
+        </div>
+        <p class="adv-note" id="advNote"><strong>fps</strong>＝1秒間に撮る写真の枚数です。パラパラ漫画のページ数と同じで、多いほど動きがなめらかに見えます（12fpsなら1秒に12枚）。実測取得は、実際に撮れた枚数（直近約5秒の平均）。画質・fps・遅延時間を上げるほど端末が重く・熱くなるので、古いiPadは「安定」がおすすめです。</p>
+        <a class="adv-link" href="guide.html#quality">画質の選び方と10秒保存（動画つきガイド）</a>
+      </details>
     </div>
   </details>
 </div>
@@ -799,6 +820,7 @@
     // UI非表示モードを解除してから停止
     if (isUIHidden) { isUIHidden = false; document.body.classList.remove('ui-hidden'); setFsIcon(false); fsLabel.textContent = '全画面'; }
     overlay.classList.remove('hidden');
+    document.body.classList.add('idle');
     stopBtn.style.display = 'none';
     delayBadge.style.display = 'none';
     bufferIndicator.style.display = 'none';
@@ -824,6 +846,8 @@
       await useStream(nextStream);
 
       overlay.classList.add('hidden');
+      document.body.classList.remove('idle');
+      requestAnimationFrame(resizeCanvas);
       stopBtn.style.display = 'flex';
       delayBadge.style.display = 'flex';
       bufferIndicator.style.display = 'block';
