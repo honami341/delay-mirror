@@ -110,6 +110,7 @@
     box-shadow: 0 8px 24px rgba(96,165,250,.26);
   }
   .start-btn:active, .btn:active, .switch:active { transform: scale(.98); }
+  .guide-link { display: inline-flex; align-items: center; min-height: 40px; color: var(--ready); font-size: 14px; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
   .error-msg { color: #ffb1aa; font-size: 13px; max-width: 340px; line-height: 1.5; }
   .delay-badge, .buffer-indicator, .warmup {
     position: absolute;
@@ -130,7 +131,75 @@
     font-weight: 700;
   }
   .delay-badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--focus); }
-  .buffer-indicator { top: 12px; right: 12px; padding: 8px 11px; }
+  .buffer-indicator { top: 56px; left: 12px; padding: 8px 11px; }
+  /* ── 今の10秒を保存 ── */
+  .clip-btn {
+    position: absolute;
+    z-index: 7;
+    top: max(12px, env(safe-area-inset-top, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 16px;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 999px;
+    background: rgba(96,165,250,.92);
+    color: #06121F;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 850;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  }
+  .clip-btn svg { width: 20px; height: 20px; display: block; }
+  .clip-btn:disabled { background: rgba(23,34,54,.88); color: var(--muted); box-shadow: none; }
+  .clip-btn:active { transform: scale(.97); }
+  .clip-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(4,7,14,.82);
+  }
+  .clip-modal[hidden] { display: none; }
+  .clip-card {
+    width: min(440px, 100%);
+    max-height: 100%;
+    overflow-y: auto;
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .clip-title { font-size: 19px; font-weight: 850; }
+  .clip-progress { height: 8px; margin-top: 14px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .clip-bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--ready), var(--focus)); transition: width .2s linear; }
+  .clip-msg { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .clip-card video { display: block; width: 100%; max-height: 42vh; margin-top: 14px; border-radius: 10px; background: #000; object-fit: contain; }
+  .clip-card video[hidden], .clip-progress[hidden] { display: none; }
+  .clip-actions { display: grid; gap: 8px; margin-top: 16px; }
+  .clip-actions[hidden] { display: none; }
+  .clip-primary, .clip-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .clip-primary { border: none; background: var(--ready); color: #06121F; }
+  .clip-secondary { border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
+  .clip-primary[hidden], .clip-secondary[hidden] { display: none; }
   .buffer-indicator strong, .warmup strong { color: var(--text); font-variant-numeric: tabular-nums; }
   .warmup {
     left: 50%; bottom: 14px;
@@ -294,6 +363,7 @@
   .stat small { display: block; color: var(--muted); font-size: 10px; font-weight: 700; }
   .stat strong { display: block; margin-top: 3px; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .adv-note { margin-top: 8px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+  .adv-link { display: inline-flex; align-items: center; min-height: 36px; margin-top: 4px; color: var(--ready); font-size: 13px; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
   @media (orientation: landscape) and (max-height: 560px) {
     body { grid-template-columns: 1fr 220px; grid-template-rows: auto 1fr; }
     .header { grid-column: 1 / 3; min-height: 40px; padding: 6px 12px; }
@@ -343,12 +413,17 @@
   <div class="warmup" id="warmupText" style="display:none;">
     あと <strong>10.0s</strong>
   </div>
+  <button class="clip-btn" id="clipBtn" type="button" style="display:none;" disabled aria-label="画面に出た直前の10秒を動画で保存">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="M7.5 9.5 12 14l4.5-4.5"/><path d="M5 18.5h14"/></svg>
+    <span>今の10秒を保存</span>
+  </button>
   <div id="tapHint">タップで操作を表示</div>
   <div class="overlay" id="overlay">
     <div class="overlay-icon">●</div>
     <h1>10秒前の自分を見る</h1>
     <p>動いた直後に画面を見るだけで、フォームや姿勢をその場で確認できます。</p>
     <button class="start-btn" id="startBtn">カメラを開始</button>
+    <a class="guide-link" href="guide.html">はじめての方へ：使い方を見る</a>
     <div class="error-msg" id="errorMsg"></div>
   </div>
 </div>
@@ -396,7 +471,7 @@
         <div class="adv-field">
           <label for="presetSelect">設定</label>
           <select id="presetSelect">
-            <option value="stable">安定（360px・8fps）</option>
+            <option value="stable">安定（360px・12fps）</option>
             <option value="smooth">なめらか（480px・15fps）</option>
             <option value="clear">きれい（640px・15fps）</option>
             <option value="high">高性能向け（720px・30fps）</option>
@@ -417,6 +492,7 @@
           <select id="fpsSelect">
             <option value="8">8</option>
             <option value="10">10</option>
+            <option value="12">12</option>
             <option value="15">15</option>
             <option value="20">20</option>
             <option value="30">30</option>
@@ -428,9 +504,23 @@
         <div class="stat"><small>画像サイズ</small><strong id="statSize">—</strong></div>
         <div class="stat"><small>使用メモリ</small><strong id="statMem">—</strong></div>
       </div>
-      <p class="adv-note" id="advNote">実測取得は直近約5秒の平均です。画質・fps・遅延時間を上げるほど、端末が重く・熱くなります。古いiPadは「安定」がおすすめです。</p>
+      <p class="adv-note" id="advNote"><strong>fps</strong>＝1秒間に撮る写真の枚数です。パラパラ漫画のページ数と同じで、多いほど動きがなめらかに見えます（12fpsなら1秒に12枚）。実測取得は、実際に撮れた枚数（直近約5秒の平均）。画質・fps・遅延時間を上げるほど端末が重く・熱くなるので、古いiPadは「安定」がおすすめです。</p>
+      <a class="adv-link" href="guide.html#quality">画質の選び方と10秒保存（動画つきガイド）</a>
     </div>
   </details>
+</div>
+<div class="clip-modal" id="clipModal" hidden role="dialog" aria-modal="true" aria-labelledby="clipTitle">
+  <div class="clip-card">
+    <div class="clip-title" id="clipTitle">動画にしています</div>
+    <div class="clip-progress" id="clipProgress"><div class="clip-bar" id="clipBar"></div></div>
+    <p class="clip-msg" id="clipMsg">撮影を一時停止して、直前の10秒を動画にしています。そのままお待ちください。</p>
+    <video id="clipPreview" playsinline muted loop controls hidden></video>
+    <div class="clip-actions" id="clipActions" hidden>
+      <button class="clip-primary" id="clipShare" type="button">写真に保存・共有</button>
+      <a class="clip-secondary" id="clipDownload" href="#" download>ファイルに保存</a>
+      <button class="clip-secondary" id="clipClose" type="button">閉じて撮影を再開</button>
+    </div>
+  </div>
 </div>
 <script>
   const liveVideo       = document.getElementById('liveVideo');
@@ -468,6 +558,17 @@
   const statFps         = document.getElementById('statFps');
   const statSize        = document.getElementById('statSize');
   const statMem         = document.getElementById('statMem');
+  const clipBtn         = document.getElementById('clipBtn');
+  const clipModal       = document.getElementById('clipModal');
+  const clipTitle       = document.getElementById('clipTitle');
+  const clipProgress    = document.getElementById('clipProgress');
+  const clipBar         = document.getElementById('clipBar');
+  const clipMsg         = document.getElementById('clipMsg');
+  const clipPreview     = document.getElementById('clipPreview');
+  const clipActions     = document.getElementById('clipActions');
+  const clipShare       = document.getElementById('clipShare');
+  const clipDownload    = document.getElementById('clipDownload');
+  const clipClose       = document.getElementById('clipClose');
 
   // 非表示のキャプチャ用キャンバス
   const capCanvas = document.createElement('canvas');
@@ -522,6 +623,8 @@
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const JPEG_QUALITY = IS_IOS ? 0.52 : 0.62;
   const BUFFER_MARGIN_SECONDS = 2;
+  // 画面に出し終えた映像を、保存用にこの秒数だけ残しておく（作業用メモリ。端末の保存容量は使わない）
+  const CLIP_SECONDS = 10;
   const MAX_FPS = 30;
   // 圧縮済みフレームの合計がこれを超えたら止める（落ちる前に知らせる）
   const MEMORY_LIMIT = (IS_IOS ? 80 : 120) * 1024 * 1024;
@@ -529,7 +632,7 @@
   // ── 画質と滑らかさ ──
   // 古い iPad は高fpsより止まらないことを優先し、既定は「安定」
   const PRESETS = {
-    stable: { size: 360, fps: 8,  label: '安定' },
+    stable: { size: 360, fps: 12, label: '安定' },
     smooth: { size: 480, fps: 15, label: 'なめらか' },
     clear:  { size: 640, fps: 15, label: 'きれい' },
     high:   { size: 720, fps: 30, label: '高性能向け' }
@@ -701,6 +804,9 @@
     bufferIndicator.style.display = 'none';
     warmupText.style.display = 'none';
     fullscreenBtn.style.display = 'none';
+    clipBtn.style.display = 'none';
+    clipBtn.disabled = true;
+    closeClipModal();
     cameraSwitchBtn.disabled = true;
     statusText.textContent = '待機中';
     statusDot.classList.remove('live');
@@ -723,6 +829,8 @@
       bufferIndicator.style.display = 'block';
       warmupText.style.display = 'block';
       fullscreenBtn.style.display = 'flex';
+      clipBtn.style.display = 'inline-flex';
+      clipBtn.disabled = true;
       cameraSwitchBtn.disabled = false;
       delayBadgeText.textContent = `${delaySeconds}秒前の映像`;
       updateControlState();
@@ -869,14 +977,16 @@
     displayFrame = null;
     decodingFrame = null;
     decodeToken++;
+    clipBtn.disabled = true;
     resetStats();
   }
 
   // 戻り値 false = メモリ上限で停止した
   function trimBuffer() {
-    const cutoff = performance.now() - (delaySeconds + BUFFER_MARGIN_SECONDS) * 1000;
+    const keepSeconds = delaySeconds + BUFFER_MARGIN_SECONDS + CLIP_SECONDS;
+    const cutoff = performance.now() - keepSeconds * 1000;
     while (frameBuffer.length > 0 && frameBuffer[0].t < cutoff) dropOldestFrame();
-    const hardMax = Math.ceil((delaySeconds + BUFFER_MARGIN_SECONDS + 1) * MAX_FPS);
+    const hardMax = Math.ceil((keepSeconds + 1) * MAX_FPS);
     while (frameBuffer.length > hardMax) dropOldestFrame();
     if (bufferBytes > MEMORY_LIMIT) {
       resetToIdle('メモリの上限に近づいたため停止しました。「画質と滑らかさ」を下げるか、遅延時間を短くしてもう一度お試しください。');
@@ -926,6 +1036,7 @@
       if (frameBuffer[i].t <= targetTime) { frame = frameBuffer[i]; break; }
     }
     if (frame) requestDecode(frame);
+    if (clipBtn.disabled && displayFrame) clipBtn.disabled = false;
     const img = displayImg;
     if (!img || !img.naturalWidth) return;
 
@@ -962,6 +1073,212 @@
     if (stream && !options.keepStream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     if (!options.keepStream) liveVideo.srcObject = null;
     clearBuffer();
+  }
+
+  // ── 今の10秒を保存 ──
+  // 画面に出た直前の10秒を、撮影を一時停止して動画にする。
+  // ためた画像を元の間隔どおりに裏のキャンバスへ描き直し、それを MediaRecorder で録る（約10秒かかる）
+  let isSaving = false;
+  let clipUrl = '';
+  let clipFile = null;
+
+  function pickClipMime() {
+    if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) return null;
+    const list = ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+    for (const m of list) {
+      try { if (MediaRecorder.isTypeSupported(m)) return m; } catch (err) { /* 次を試す */ }
+    }
+    return '';
+  }
+
+  function decodeClipFrame(frame) {
+    if (frame.blob && window.createImageBitmap) {
+      return createImageBitmap(frame.blob).catch(() => decodeWithImage(frame));
+    }
+    return decodeWithImage(frame);
+  }
+  function decodeWithImage(frame) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = frame.blob ? URL.createObjectURL(frame.blob) : '';
+      img.onload = () => { if (url) URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { if (url) URL.revokeObjectURL(url); reject(new Error('decode')); };
+      img.src = url || frame.dataUrl;
+    });
+  }
+  const sleepMs = (ms) => new Promise((r) => setTimeout(r, Math.max(0, ms)));
+
+  async function encodeClip(clip, view, onProgress) {
+    const mime = pickClipMime();
+    if (mime === null) throw new Error('unsupported');
+    const first = await decodeClipFrame(clip[0]);
+    const fw = first.naturalWidth || first.width;
+    const fh = first.naturalHeight || first.height;
+    const rot90 = view.rotationDeg === 90 || view.rotationDeg === 270;
+    const even = (n) => Math.max(2, Math.round(n / 2) * 2); // H.264 は偶数サイズが必要
+    const out = document.createElement('canvas');
+    out.width = even(rot90 ? fh : fw);
+    out.height = even(rot90 ? fw : fh);
+    // Safari は DOM に無いキャンバスを録れないことがあるため、画面外に置く
+    out.style.cssText = 'position:fixed;left:-10000px;top:0;width:2px;height:2px;pointer-events:none;';
+    document.body.appendChild(out);
+    const oc = out.getContext('2d');
+    const draw = (img) => {
+      oc.save();
+      oc.fillStyle = '#000';
+      oc.fillRect(0, 0, out.width, out.height);
+      oc.translate(out.width / 2, out.height / 2);
+      if (view.rotationDeg) oc.rotate(view.rotationDeg * Math.PI / 180);
+      if (view.mirrored) oc.scale(-1, 1);
+      oc.drawImage(img, -fw / 2, -fh / 2, fw, fh);
+      oc.restore();
+    };
+    draw(first);
+    const span = Math.max(1, clip[clip.length - 1].t - clip[0].t);
+    const fps = Math.min(MAX_FPS, Math.max(8, Math.round((clip.length - 1) * 1000 / span)));
+    const bitrate = Math.min(4000000, Math.max(800000, Math.round(out.width * out.height * fps * 0.15)));
+    const outStream = out.captureStream(MAX_FPS);
+    const rec = new MediaRecorder(outStream, mime ? { mimeType: mime, videoBitsPerSecond: bitrate } : { videoBitsPerSecond: bitrate });
+    const chunks = [];
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+    const stopped = new Promise((resolve) => { rec.onstop = resolve; });
+    try {
+      rec.start(1000);
+      const t0 = performance.now();
+      const base = clip[0].t;
+      let pending = null;
+      for (let i = 0; i < clip.length; i++) {
+        const img = i === 0 ? first : await pending;
+        pending = i + 1 < clip.length ? decodeClipFrame(clip[i + 1]) : null;
+        await sleepMs(t0 + (clip[i].t - base) - performance.now());
+        draw(img);
+        if (img.close) img.close();
+        onProgress((clip[i].t - base) / span);
+      }
+      await sleepMs(1000 / fps); // 最後の1枚にも表示時間を持たせる
+    } finally {
+      if (rec.state !== 'inactive') rec.stop();
+      await stopped;
+      outStream.getTracks().forEach((t) => t.stop());
+      out.remove();
+    }
+    const type = ((rec.mimeType || mime || 'video/webm').split(';')[0]) || 'video/webm';
+    const blob = new Blob(chunks, { type });
+    if (!blob.size) throw new Error('empty');
+    return { blob, type, ext: type.indexOf('mp4') >= 0 ? 'mp4' : 'webm', seconds: span / 1000 };
+  }
+
+  function clipStamp() {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  }
+
+  function openClipModal() {
+    clipTitle.textContent = '動画にしています';
+    clipMsg.textContent = '撮影を一時停止して、直前の10秒を動画にしています。そのままお待ちください。';
+    clipBar.style.width = '0%';
+    clipProgress.hidden = false;
+    clipPreview.hidden = true;
+    clipActions.hidden = true;
+    clipShare.hidden = true;
+    clipDownload.hidden = true;
+    clipModal.hidden = false;
+  }
+  function closeClipModal() {
+    clipModal.hidden = true;
+    try { clipPreview.pause(); } catch (err) { /* 無視 */ }
+    clipPreview.removeAttribute('src');
+    if (clipUrl) { URL.revokeObjectURL(clipUrl); clipUrl = ''; }
+    clipFile = null;
+    isSaving = false;
+  }
+
+  async function saveClip() {
+    if (isSaving || !isRunning || !displayFrame) return;
+    const end = displayFrame.t;
+    const start = end - CLIP_SECONDS * 1000;
+    const clip = frameBuffer.filter((f) => f.t >= start && f.t <= end);
+    if (clip.length < 2) return;
+    const view = { mirrored, rotationDeg };
+    isSaving = true;
+    // 撮影を一時停止（カメラはつないだまま）。画面は押した瞬間の1枚で止まる
+    stopCapture({ keepStream: true });
+    statusText.textContent = '保存中';
+    warmupText.style.display = 'none';
+    openClipModal();
+    try {
+      const result = await encodeClip(clip, view, (p) => { clipBar.style.width = Math.round(p * 100) + '%'; });
+      if (clipModal.hidden) return; // 途中で停止された
+      const name = `echo-mirror-${clipStamp()}.${result.ext}`;
+      clipUrl = URL.createObjectURL(result.blob);
+      clipFile = (typeof File === 'function') ? new File([result.blob], name, { type: result.type }) : null;
+      clipTitle.textContent = `動画ができました（${result.seconds.toFixed(1)}秒）`;
+      clipMsg.textContent = '保存先を選んでください。保存しないで閉じると、この動画は消えます。';
+      clipProgress.hidden = true;
+      clipPreview.src = clipUrl;
+      clipPreview.hidden = false;
+      try { clipPreview.play().catch(() => {}); } catch (err) { /* 自動再生できなくても再生ボタンで見られる */ }
+      let canShare = false;
+      try { canShare = !!(clipFile && navigator.canShare && navigator.canShare({ files: [clipFile] })); } catch (err) { canShare = false; }
+      clipShare.hidden = !canShare;
+      clipDownload.href = clipUrl;
+      clipDownload.download = name;
+      clipDownload.hidden = false;
+      clipActions.hidden = false;
+    } catch (err) {
+      if (clipModal.hidden) return;
+      clipTitle.textContent = '動画にできませんでした';
+      clipMsg.textContent = (err && err.message === 'unsupported')
+        ? 'このブラウザは動画の書き出しに対応していません。iPadはiPadOS 14.3以降のSafariでお試しください。'
+        : '書き出しの途中で問題が起きました。もう一度お試しください。';
+      clipProgress.hidden = true;
+      clipActions.hidden = false;
+    }
+  }
+
+  clipBtn.addEventListener('click', (e) => { e.stopPropagation(); saveClip(); });
+
+  clipShare.addEventListener('click', async () => {
+    if (!clipFile) return;
+    try {
+      await navigator.share({ files: [clipFile], title: 'エコーミラー' });
+      clipMsg.textContent = '保存・共有しました。続けて撮るときは「閉じて撮影を再開」を押してください。';
+    } catch (err) {
+      if (!err || err.name !== 'AbortError') clipMsg.textContent = '共有できませんでした。「ファイルに保存」をお試しください。';
+    }
+  });
+
+  clipClose.addEventListener('click', async () => {
+    closeClipModal();
+    if (!stream) { resetToIdle(''); return; }
+    const videoTrack = stream.getVideoTracks()[0];
+    try {
+      if (!videoTrack || videoTrack.readyState !== 'live') {
+        await useStream(await openCamera(currentFacingMode));
+      } else {
+        try { await liveVideo.play(); } catch (err) { /* 次の復帰で拾う */ }
+        resumeCapture();
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      statusText.textContent = '準備中';
+      warmupText.style.display = 'block';
+      requestWakeLock();
+    } catch (err) {
+      resetToIdle(cameraErrorMessage(err));
+    }
+  });
+
+  // カメラはそのままで、映像をため直して撮影を続ける
+  function resumeCapture() {
+    isRunning = true;
+    clearBuffer();
+    captureWidth = 0;
+    captureHeight = 0;
+    resizeCanvas();
+    nextCaptureAt = performance.now();
+    scheduleCapture(0);
+    rafId = requestAnimationFrame(drawLoop);
   }
 
   // ── 画面ロックやアプリ切替から戻ったときの復帰 ──

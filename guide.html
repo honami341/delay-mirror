@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#070B14">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>エコーミラー — 使い方ガイド</title>
+<style>
+  :root { --bg:#070B14; --surface:#101827; --surface-2:#172236; --text:#EAF1FF; --muted:#94A7C4; --line:rgba(234,241,255,.14); --ready:#60A5FA; --focus:#22D3EE; --warn:#FBBF24; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', 'Hiragino Sans', system-ui, sans-serif; line-height: 1.75; }
+  .top { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; background: #0A1020; border-bottom: 1px solid var(--line); }
+  .top .title { font-size: 14px; font-weight: 750; letter-spacing: .06em; }
+  .back { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 8px; background: var(--ready); color: #06121F; font-weight: 800; font-size: 14px; text-decoration: none; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 26px; line-height: 1.35; margin-bottom: 8px; }
+  .lead { color: var(--muted); font-size: 15px; }
+  video { display: block; width: 100%; margin: 20px 0 8px; border-radius: 12px; border: 1px solid var(--line); background: #000; aspect-ratio: 16 / 9; }
+  .vnote { color: var(--muted); font-size: 12px; }
+  h2 { font-size: 20px; margin: 36px 0 12px; padding-top: 18px; border-top: 1px solid var(--line); }
+  p { font-size: 15px; margin: 10px 0; }
+  strong { color: #fff; }
+  ul, ol { margin: 10px 0 10px 1.3em; font-size: 15px; }
+  li { margin: 6px 0; }
+  .table-wrap { overflow-x: auto; margin: 12px 0; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 420px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 700; font-size: 12px; background: var(--surface); }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
+  .box.key { border-color: rgba(96,165,250,.5); }
+  .muted { color: var(--muted); font-size: 13px; }
+  h3 { font-size: 17px; margin: 26px 0 8px; color: #fff; }
+  h2[id] { scroll-margin-top: 70px; }
+  a { color: var(--ready); }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; }
+  .toc a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text); font-size: 13px; font-weight: 700; text-decoration: none; }
+  .yt { position: relative; margin: 14px 0 6px; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+  .yt button { all: unset; position: absolute; inset: 0; cursor: pointer; display: grid; place-items: center; background-size: cover; background-position: center; }
+  .yt button span { display: grid; place-items: center; width: 72px; height: 50px; border-radius: 14px; background: rgba(220,38,38,.92); box-shadow: 0 6px 18px rgba(0,0,0,.45); }
+  .yt button span::before { content: ''; border-style: solid; border-width: 11px 0 11px 18px; border-color: transparent transparent transparent #fff; margin-left: 4px; }
+  .yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .yt .soon { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; background: var(--surface); }
+  .yt-open { font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="title">エコーミラー ・ 使い方ガイド</span>
+  <a class="back" href="./">ミラーに戻る</a>
+</div>
+<main>
+  <h1>エコーミラーの使い方</h1>
+  <p class="lead">はじめての使い方、画質の調整、いい場面を10秒だけ動画で残す方法。</p>
+  <nav class="toc" aria-label="目次">
+    <a href="#basic">はじめての使い方</a>
+    <a href="#quality">画質と滑らかさ</a>
+    <a href="#save">今の10秒を保存</a>
+  </nav>
+
+  <h2 id="basic">はじめての使い方</h2>
+  <div class="yt" data-yt="DrTeuqhx2Sk" data-title="エコーミラー はじめての使い方"></div>
+  <p class="vnote">約1分・音声あり（YouTube）。映像の人物は動作確認用のCGです。</p>
+  <ol>
+    <li><strong>端末を置く。</strong>タブレットやスマホを、全身が映る場所に立てて置きます。</li>
+    <li><strong>カメラを開始する。</strong>カメラへのアクセスを許可します。</li>
+    <li><strong>遅延時間を決める。</strong>スライダーで2〜90秒から選びます。10秒なら、画面に映るのは10秒前の自分です。</li>
+    <li><strong>最初だけ待つ。</strong>映像をためるため、設定した秒数ぶん待ちます。</li>
+    <li><strong>動いて、それから画面を見る。</strong>動いている間は画面を見ず、終わってから見ます。</li>
+  </ol>
+  <p>いい場面が映ったら、映像右上の「今の10秒を保存」で動画にして残せます（<a href="#save">くわしく</a>）。カメラの切り替え・ミラー・回転・全画面は、画面下のボタンで操作します。タブレットはホーム画面に追加すると、アプリのように使えます。</p>
+
+  <h2 id="quality">画質と滑らかさ</h2>
+  <div class="yt" data-yt="vP_y46IlYuY" data-title="エコーミラー 画質の調整と、今の10秒を保存"></div>
+  <p class="vnote">約1分30秒・音声あり（YouTube）。1:14からは「今の10秒を保存」です。</p>
+
+  <h3>最初は何も変えなくて大丈夫</h3>
+  <p>初期設定は、古いiPadでも止まらないように軽めにしてあります。</p>
+  <ul>
+    <li>iPad：<strong>安定</strong>（画像の長辺 360px・12fps）</li>
+    <li>それ以外のスマホやパソコン：<strong>なめらか</strong>（480px・15fps）</li>
+    <li>遅延時間：10秒</li>
+  </ul>
+  <p>まずはこのまま使ってみて、物足りなく感じたら調整してください。</p>
+
+  <h3>調整できるのは2つ</h3>
+  <p>画面下の「画質と滑らかさ」を押すと開きます。</p>
+  <div class="table-wrap"><table>
+    <tr><th>項目</th><th>意味</th><th>上げるとよくなること</th></tr>
+    <tr><td>画像の長辺</td><td>映像の細かさ（360〜720px）</td><td>手先・足先の向き、細かい姿勢が見やすくなる</td></tr>
+    <tr><td>目標fps</td><td>1秒に撮る枚数（8〜30）</td><td>速い動きがカクカクせず、なめらかに見える</td></tr>
+  </table></div>
+  <div class="box">
+    <p style="margin-top:0"><strong>fps（エフピーエス）とは</strong>：1秒間に何枚の写真を撮るか、という数です。パラパラ漫画と同じで、枚数が多いほど動きがなめらかに見え、少ないとカクカクします。12fpsなら1秒に12枚、30fpsなら30枚。テレビや映画は1秒に24〜30枚ほどです。</p>
+    <p style="margin-bottom:0"><strong>px（ピクセル）とは</strong>：画像の細かさです。360pxは、画像の長い辺に点が360個並ぶ細かさ。数が大きいほど、手先や足先までくっきり見えます。</p>
+  </div>
+  <p>「設定」でプリセット（安定・なめらか・きれい・高性能向け）を選ぶと、この2つがまとめて決まります。</p>
+  <div class="box key">
+    <p><strong>「カスタム」は、画像の長辺と目標fpsを自分で選んでいる状態です。</strong>どちらかを手で変えると、表示が「カスタム」に切り替わります。壊れたわけではありません。プリセットを選び直せば、いつでも元に戻せます。</p>
+  </div>
+  <p>上げ方の基本は、<strong>見たいものに合わせて片方だけ一段上げる</strong>ことです。手先や足先をよく見たいなら画像の長辺を、速い動きをなめらかに見たいなら目標fpsを上げます。</p>
+
+  <h3>負荷の目安</h3>
+  <p>端末が1秒間に処理する量は、おおよそ<strong>画像の長辺の2乗 × fps</strong>に比例します。「安定」を1とすると次のとおりです。</p>
+  <div class="table-wrap"><table>
+    <tr><th>設定</th><th>長辺</th><th>fps</th><th>負荷（安定＝1）</th></tr>
+    <tr><td>安定</td><td class="num">360px</td><td class="num">12</td><td class="num">1</td></tr>
+    <tr><td>なめらか</td><td class="num">480px</td><td class="num">15</td><td class="num">約2.2</td></tr>
+    <tr><td>きれい</td><td class="num">640px</td><td class="num">15</td><td class="num">約4</td></tr>
+    <tr><td>高性能向け</td><td class="num">720px</td><td class="num">30</td><td class="num">約10</td></tr>
+  </table></div>
+  <p>長辺を2倍にすると負荷は4倍、fpsを2倍にすると負荷は2倍です。<strong>画質を上げるほうが、fpsを上げるより重くなりやすい</strong>と覚えておくと選びやすくなります。</p>
+  <p class="muted">カスタムの例</p>
+  <div class="table-wrap"><table>
+    <tr><th>組み合わせ</th><th>負荷（安定＝1）</th><th>向いている場面</th></tr>
+    <tr><td class="num">360px・20fps</td><td class="num">約1.7</td><td>速い動きを、軽いまま見たい</td></tr>
+    <tr><td class="num">480px・12fps</td><td class="num">約1.8</td><td>少しだけ細かく見たい</td></tr>
+    <tr><td class="num">640px・10fps</td><td class="num">約2.6</td><td>ゆっくりした動きで、手先や足先を見たい</td></tr>
+    <tr><td class="num">480px・30fps</td><td class="num">約4.4</td><td>ジャンプや素早い切り返しを見たい</td></tr>
+    <tr><td class="num">720px・15fps</td><td class="num">約5</td><td>細部をしっかり見たい（新しめの端末向け）</td></tr>
+  </table></div>
+
+  <h3>端末ごとの目安</h3>
+  <p>下の表は、どこまで試す価値があるかの目安です。実機ごとに測ったものではなく、上の負荷の計算と端末の世代から見積もっています。同じ世代でも、ほかのアプリの使用状況や発熱で変わります。<strong>限界は、手元の端末で次の「実測取得」を見て判断してください。</strong></p>
+  <div class="table-wrap"><table>
+    <tr><th>端末の例</th><th>まず試す範囲</th></tr>
+    <tr><td>古いiPad（2018年ごろまでのモデル）</td><td>安定。余裕があれば、なめらか（負荷約2倍）まで</td></tr>
+    <tr><td>2019年以降のiPad・iPhone、一般的なスマホ</td><td>なめらか〜きれい（負荷約2〜4倍）</td></tr>
+    <tr><td>最近のiPad Pro・iPhone、パソコン</td><td>高性能向け（負荷約10倍）まで</td></tr>
+  </table></div>
+  <p>とても古いiPadで「安定」でも実測が12fpsに届かないときは、カスタムで目標fpsを10に、それでも届かなければ8にしてください。</p>
+
+  <h3>無理をしているサイン</h3>
+  <p>開いた中の「実測取得」と「使用メモリ」を見ます。あわせて、体感のサインにも気を配ります。</p>
+  <ol>
+    <li><strong>実測取得が目標fpsに届かない。</strong>実測取得は、実際に1秒間に撮れた枚数（直近約5秒の平均）です。目標の9割を下回る状態が続いたら、端末が追いついていません。一段下げてください（例：目標15fpsで実測13.5fps未満が続く）。設定を変えたあとは、数秒待ってから見ます。</li>
+    <li><strong>使用メモリが上限に近い。</strong>ためている映像の合計です。上限（iPad 80MB、それ以外 120MB）を超えると、アプリが自動で止まります。近づいてきたら、遅延時間・画像の長辺・目標fpsのどれかを下げてください。</li>
+    <li><strong>端末が熱い・電池の減りが速い・操作がもたつく。</strong>数字に出なくても、下げどきのサインです。長時間置きっぱなしで使うなら、余裕のある設定にしておくと安心です。</li>
+  </ol>
+
+  <h3>メモリの目安</h3>
+  <p>使用メモリは「1枚の重さ × fps × ためている時間」で増えます。ためている時間は、遅延時間に、保存用の10秒と余白の2秒を足した長さです。1枚の重さは撮る内容（部屋の明るさ、背景の細かさ）で2〜3倍変わります。下の表は、パソコンのChromeで測った1枚の重さの大きめの値を、さらに約2倍にして見積もった試算です。</p>
+  <div class="table-wrap"><table>
+    <tr><th>設定</th><th>遅延30秒</th><th>遅延90秒</th></tr>
+    <tr><td>安定</td><td class="num">約6MB</td><td class="num">約15MB</td></tr>
+    <tr><td>なめらか</td><td class="num">約11MB</td><td class="num">約28MB</td></tr>
+    <tr><td>きれい</td><td class="num">約18MB</td><td class="num">約43MB</td></tr>
+    <tr><td>高性能向け</td><td class="num">約45MB</td><td class="num">約110MB</td></tr>
+  </table></div>
+  <p>上限に届きやすいのは<strong>高性能向け × 長い遅延</strong>です。iPadの上限80MBを超えることがあり、そのときはアプリが自動で止まります。</p>
+
+  <h3>迷ったときの進め方</h3>
+  <ol>
+    <li>初期設定のまま、使いたい遅延時間を決める</li>
+    <li>見たいものに合わせて、片方だけ一段上げる（速い動きならfps、手先や足先なら画像の長辺）</li>
+    <li>1分ほど使って「実測取得」を見る</li>
+    <li>目標に届いていなければ一段戻す</li>
+  </ol>
+  <p>選んだ設定は端末に保存され、次に開いたときも使われます。</p>
+
+  <h2 id="save">いい場面を残す（今の10秒を保存）</h2>
+  <p>映像の右上にある<strong>「今の10秒を保存」</strong>を押すと、画面に出ていた直前の10秒を動画にして残せます。全画面表示のときも、同じ右上にあります。</p>
+  <p class="yt-open"><a href="https://youtu.be/vP_y46IlYuY?t=74" target="_blank" rel="noreferrer">動画で見る（YouTube・1:14から） ↗</a></p>
+  <ol>
+    <li>いい動きができたと思ったら、画面で見終えたところで「今の10秒を保存」を押す</li>
+    <li>撮影が一時停止し、約10秒かけて動画にする（そのまま待つ）</li>
+    <li>できた動画を確かめて、保存先を選ぶ<br><strong>写真に保存・共有</strong>：iPadやiPhoneでは、出てきたメニューの「ビデオを保存」で写真アプリに入ります<br><strong>ファイルに保存</strong>：ファイルとして保存します</li>
+    <li><strong>閉じて撮影を再開</strong>を押すと、撮影に戻る</li>
+  </ol>
+  <div class="box">
+    <ul style="margin-top:0;margin-bottom:0">
+      <li>保存されるのは、画面に出ていた映像そのままです。向き・ミラー・画質も画面と同じになります。きれいに残したい日は、「画質と滑らかさ」を上げておきます。</li>
+      <li>保存しないで閉じると、その動画は消えます。</li>
+      <li>撮影を再開すると、遅延時間ぶんの映像をため直すので、映るまで少し待ちます。</li>
+      <li>始めた直後で、まだ映像が画面に出ていないあいだは押せません。出始めてから10秒たっていなければ、そのぶん短い動画になります。</li>
+      <li>保存のために、画面に出し終えた映像を10秒ぶん余分にためています。増えるのは作業用のメモリで、「安定」なら1〜2MBほどです。端末の保存容量を使うのは、保存したときだけです。</li>
+      <li>動画は端末の中で作られ、外へ送られることはありません。</li>
+      <li>古いiPadでは、iPadOS 14.3以降のSafariが必要です。対応していないときは、その旨が表示されます。</li>
+    </ul>
+  </div>
+
+  <p style="margin-top:28px"><a class="back" href="./">ミラーに戻る</a></p>
+</main>
+<script>
+  // YouTube の再生プレーヤーは、押したときだけ読み込む（最初はサムネ画像だけ）
+  document.querySelectorAll('.yt').forEach((box) => {
+    const id = box.dataset.yt;
+    const title = box.dataset.title || '動画';
+    if (!id || id.indexOf('VIDEO_') === 0) {
+      box.innerHTML = '<div class="soon">動画は準備中です</div>';
+      return;
+    }
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', title + 'を再生');
+    btn.style.backgroundImage = 'url(https://i.ytimg.com/vi/' + encodeURIComponent(id) + '/hqdefault.jpg)';
+    btn.innerHTML = '<span></span>';
+    btn.addEventListener('click', () => {
+      const f = document.createElement('iframe');
+      f.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=1&rel=0&playsinline=1';
+      f.title = title;
+      f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      f.allowFullscreen = true;
+      box.innerHTML = '';
+      box.appendChild(f);
+    });
+    box.appendChild(btn);
+    const open = document.createElement('p');
+    open.className = 'yt-open';
+    open.innerHTML = '<a href="https://youtu.be/' + encodeURIComponent(id) + '" target="_blank" rel="noreferrer">YouTubeで開く ↗</a>';
+    box.insertAdjacentElement('afterend', open);
+  });
+</script>
+</body>
+</html>

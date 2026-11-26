@@ -1,7 +1,8 @@
-const CACHE_VERSION = 'echo-mirror-v5';
+const CACHE_VERSION = 'echo-mirror-v6';
 const CACHE_ASSETS = [
   './',
   './index.html',
+  './guide.html',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png'
