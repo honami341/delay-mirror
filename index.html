@@ -201,6 +201,7 @@
   }
   .clip-primary { border: none; background: var(--ready); color: #06121F; }
   .clip-secondary { border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
+  .clip-secondary.warn { border-color: rgba(255,92,122,.6); background: rgba(255,92,122,.12); color: #FFD8DE; }
   .clip-primary[hidden], .clip-secondary[hidden] { display: none; }
   .buffer-indicator strong, .warmup strong { color: var(--text); font-variant-numeric: tabular-nums; }
   .warmup {
@@ -1383,7 +1384,13 @@
     clipActions.hidden = true;
     clipShare.hidden = true;
     clipDownload.hidden = true;
+    setClipSaved(true); // 動画ができるまでは「閉じて撮影を再開」（消える動画がまだ無い）
     clipModal.hidden = false;
+  }
+  // 閉じるボタンは、保存したかどうかで表示を変える（保存前に閉じると動画は消える）
+  function setClipSaved(saved) {
+    clipClose.textContent = saved ? '閉じて撮影を再開' : '保存せずに閉じる（動画は消えます）';
+    clipClose.classList.toggle('warn', !saved);
   }
   function closeClipModal() {
     clipModal.hidden = true;
@@ -1425,6 +1432,7 @@
       clipDownload.href = clipUrl;
       clipDownload.download = name;
       clipDownload.hidden = false;
+      setClipSaved(false);
       clipActions.hidden = false;
     } catch (err) {
       if (clipModal.hidden) return;
@@ -1443,10 +1451,17 @@
     if (!clipFile) return;
     try {
       await navigator.share({ files: [clipFile], title: 'エコーミラー' });
+      setClipSaved(true);
       clipMsg.textContent = '保存・共有しました。続けて撮るときは「閉じて撮影を再開」を押してください。';
     } catch (err) {
       if (!err || err.name !== 'AbortError') clipMsg.textContent = '共有できませんでした。「ファイルに保存」をお試しください。';
     }
+  });
+
+  clipDownload.addEventListener('click', () => {
+    // ダウンロードを始めたら保存済みとみなす
+    setClipSaved(true);
+    clipMsg.textContent = 'ファイルに保存しました。続けて撮るときは「閉じて撮影を再開」を押してください。';
   });
 
   clipClose.addEventListener('click', async () => {
