@@ -228,6 +228,54 @@
     white-space: nowrap;
   }
   body.ui-hidden .header, body.ui-hidden .controls { display: none; }
+  /* 映像の上の表示は減らす：「○秒前の映像」は出さない。ためた映像は映像と操作欄の境目に1つだけ */
+  .delay-badge, .buffer-indicator { display: none !important; }
+  body:not(.ui-hidden) .warmup { display: none !important; }
+  .controls { position: relative; z-index: 5; padding-top: 24px; }
+  .buffer-pill {
+    position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%);
+    display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap;
+    padding: 7px 14px; border-radius: 999px;
+    background: rgba(16,24,39,.94); border: 1px solid rgba(234,241,255,.22);
+    box-shadow: 0 4px 14px rgba(0,0,0,.35);
+    color: var(--text); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;
+  }
+  .buffer-pill[hidden] { display: none; }
+  .buffer-pill .bp-sub { color: var(--muted); font-size: 11px; font-weight: 700; }
+  .buffer-pill.ready .bp-main { color: var(--muted); font-weight: 700; }
+  /* 保存ボタン：小さめ・半透明。ボタンだと分かる枠は残す */
+  .clip-btn {
+    min-height: 38px; padding: 0 12px; gap: 6px; font-size: 13px; font-weight: 800;
+    background: rgba(96,165,250,.30); color: #F2F7FF;
+    border: 1px solid rgba(191,219,254,.75);
+    box-shadow: 0 2px 10px rgba(0,0,0,.25);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .clip-btn svg { width: 17px; height: 17px; }
+  .clip-btn:disabled { background: rgba(23,34,54,.45); color: rgba(148,167,196,.85); border-color: rgba(234,241,255,.18); box-shadow: none; }
+  /* 画質と滑らかさ：プリセットは4つのボタン、細かい設定は1行で */
+  .preset-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .chip { min-height: 38px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+  .chip.on { background: rgba(96,165,250,.22); border-color: var(--ready); color: #fff; box-shadow: inset 0 0 0 1px var(--ready); }
+  .fine-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: var(--muted); font-size: 12px; font-weight: 700; }
+  .fine-label { flex: none; }
+  .fine-field { display: inline-flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+  .fine-field select { flex: 1; min-width: 0; min-height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 700; }
+  .fine-field select:focus-visible, .chip:focus-visible, .adv-action:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .adv-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .adv-action { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 800; text-decoration: none; cursor: pointer; }
+  .adv-action svg { width: 18px; height: 18px; flex: none; }
+  .adv-action[aria-expanded="true"] { border-color: var(--ready); color: #fff; }
+  a.adv-action { border-color: rgba(96,165,250,.6); color: #CFE3FF; background: rgba(96,165,250,.10); }
+  .stats-panel { margin-top: 8px; }
+  .stats-panel[hidden] { display: none; }
+  .stats-panel .stat-grid { margin-top: 0; }
+  @media (orientation: landscape) and (max-height: 560px) {
+    .controls { padding-top: 10px; }
+    .buffer-pill { position: static; transform: none; display: flex; justify-content: center; margin: 0 0 8px; }
+    .preset-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .fine-row { flex-wrap: wrap; }
+  }
   /* カメラ開始前は操作欄を出さず、開始ボタンを画面いっぱいの真ん中に置く */
   body.idle .controls { display: none; }
   body.idle .video-stage { grid-column: 1 / -1; grid-row: 2 / -1; }
@@ -397,8 +445,55 @@
     .status { padding: 0 8px; font-size: 11px; }
     .control-grid { grid-template-columns: 1fr; }
     .button-row { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-    .btn { min-height: 54px; }
+    .btn { min-height: 48px; }
   }
+  /* 操作欄を詰める：状態の行はボタン自体で示すので出さない。ボタンと遅延の数字は小さめ */
+  .state-strip { display: none; }
+  .control-grid { gap: 10px; }
+  .delay-label { margin-bottom: 4px; }
+  .delay-value { font-size: 22px; }
+  .delay-value small { font-size: 12px; }
+  .btn { min-height: 48px; gap: 2px; font-size: 11px; }
+  .btn .icon { font-size: 16px; }
+  .btn .icon svg { width: 19px; height: 19px; }
+  .btn.on { border-color: var(--ready); background: rgba(96,165,250,.18); color: #fff; }
+  .btn .sub { font-size: 10px; color: var(--muted); font-weight: 700; }
+  .fine-field { color: var(--muted); }
+  /* 画質と滑らかさ：「画質」ボタンを押すと下から引き出す */
+  @media (max-width: 520px) { .button-row { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; } }
+  /* 横長ボタン：画質と滑らかさ（引き出す）、使い方ガイド（一番下） */
+  .wide-btn {
+    display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; margin-top: 10px; padding: 0 14px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); color: var(--text);
+    font-family: inherit; font-size: 14px; font-weight: 800; text-decoration: none; cursor: pointer; text-align: left;
+  }
+  .wide-btn svg { width: 19px; height: 19px; flex: none; }
+  .wide-btn .wide-label { flex: none; }
+  .wide-btn .wide-now { margin-left: auto; color: var(--muted); font-size: 12px; font-weight: 750; font-variant-numeric: tabular-nums; }
+  .wide-btn .wide-chev { width: 16px; height: 16px; color: var(--muted); }
+  .wide-btn.on { border-color: var(--ready); background: rgba(96,165,250,.16); }
+  .wide-btn.guide { justify-content: center; margin-top: 8px; border-color: rgba(96,165,250,.6); background: rgba(96,165,250,.10); color: #CFE3FF; }
+  .wide-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .adv-actions { grid-template-columns: 1fr; }
+  .btn.on .icon, .btn.on { color: #fff; }
+  body.sheet-open .controls { z-index: 60; }
+  .sheet-backdrop { position: fixed; inset: 0; z-index: 61; background: rgba(4,7,14,.45); }
+  .sheet-backdrop[hidden] { display: none; }
+  .quality-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 62;
+    width: min(560px, 100%); margin: 0 auto;
+    padding: 12px 14px max(16px, env(safe-area-inset-bottom, 0px));
+    background: var(--surface); border: 1px solid var(--line); border-bottom: none; border-radius: 16px 16px 0 0;
+    box-shadow: 0 -16px 40px rgba(0,0,0,.5);
+    animation: sheetUp .22s ease-out;
+  }
+  .quality-sheet[hidden] { display: none; }
+  @keyframes sheetUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .sheet-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .sheet-head b { font-size: 15px; font-weight: 850; }
+  .sheet-now { color: var(--muted); font-size: 12px; font-weight: 750; font-variant-numeric: tabular-nums; }
+  .sheet-close { margin-left: auto; width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--surface-2); color: var(--text); cursor: pointer; }
+  .sheet-close svg { width: 18px; height: 18px; }
 </style>
 </head>
 <body class="idle">
@@ -444,6 +539,10 @@
 </div>
 
 <div class="controls">
+  <div class="buffer-pill" id="bufferPill" hidden aria-live="polite">
+    <span class="bp-main" id="bufferPillMain">映像をためています</span>
+    <span class="bp-sub" id="bufferPillSub"></span>
+  </div>
   <div class="control-grid">
     <div class="delay-control">
       <div class="delay-label">
@@ -453,7 +552,7 @@
       <input type="range" id="delaySlider" min="2" max="90" step="1" value="10" aria-label="遅延時間">
       <div class="state-strip">
         <span class="state-pill" id="cameraState">インカメラ</span>
-        <span class="state-pill" id="mirrorState">ミラー ON</span>
+        <span class="state-pill" id="mirrorState">左右反転 ON</span>
         <span class="state-pill" id="rotateState">回転 0°</span>
       </div>
     </div>
@@ -467,44 +566,49 @@
         </span>
         <span id="cameraSwitchLabel">アウトへ</span>
       </button>
-      <button class="btn" id="mirrorBtn" type="button"><span class="icon">⇆</span><span>ミラー</span></button>
-      <button class="btn" id="rotateBtn" type="button"><span class="icon">↻</span><span>回転</span></button>
+      <button class="btn" id="mirrorBtn" type="button" aria-label="左右反転の切り替え"><span class="icon">⇆</span><span>反転</span></button>
+      <button class="btn" id="rotateBtn" type="button" aria-label="映像を90度回転"><span class="icon">↻</span><span id="rotateLabel">回転</span></button>
       <button class="btn" id="fullscreenBtn" type="button" style="display:none;"><span class="icon" id="fsIcon" aria-hidden="true"></span><span id="fsLabel">全画面</span></button>
       <button class="btn danger" id="stopBtn" type="button" style="display:none;"><span class="icon">■</span><span>停止</span></button>
     </div>
   </div>
-  <details class="advanced" id="advanced">
-    <summary>
-      <span>画質と滑らかさ</span>
-      <span class="adv-summary-right">
-        <span id="advSummary">安定</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-      </span>
-    </summary>
+  <button class="wide-btn" id="qualityBtn" type="button" aria-expanded="false" aria-controls="advanced">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h4"/><path d="M12 17h8"/><circle cx="10" cy="17" r="2"/></svg>
+    <span class="wide-label">画質と滑らかさ</span>
+    <span class="wide-now" id="qualityNow"></span>
+    <svg class="wide-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>
+  </button>
+  <a class="wide-btn guide" href="guide.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor" stroke="none"/></svg>
+    <span class="wide-label">使い方ガイド（動画つき）</span>
+  </a>
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+  <div class="quality-sheet" id="advanced" hidden role="dialog" aria-label="画質と滑らかさ">
+    <div class="sheet-head">
+      <b>画質と滑らかさ</b>
+      <span class="sheet-now" id="advSummary"></span>
+      <button type="button" class="sheet-close" id="sheetClose" aria-label="閉じる">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>
+      </button>
+    </div>
     <div class="adv-body">
-      <div class="adv-grid">
-        <div class="adv-field">
-          <label for="presetSelect">設定</label>
-          <select id="presetSelect">
-            <option value="stable">安定（360px・12fps）</option>
-            <option value="smooth">なめらか（480px・15fps）</option>
-            <option value="clear">きれい（640px・15fps）</option>
-            <option value="high">高性能向け（720px・30fps）</option>
-            <option value="custom">カスタム</option>
-          </select>
-        </div>
-        <div class="adv-field">
-          <label for="sizeSelect">画像の長辺</label>
-          <select id="sizeSelect">
+      <div class="preset-chips" role="radiogroup" aria-label="画質と滑らかさ">
+        <button type="button" class="chip" role="radio" data-preset="stable">安定</button>
+        <button type="button" class="chip" role="radio" data-preset="smooth">なめらか</button>
+        <button type="button" class="chip" role="radio" data-preset="clear">きれい</button>
+        <button type="button" class="chip" role="radio" data-preset="high">高性能</button>
+      </div>
+      <div class="fine-row">
+        <label class="fine-field">画質
+          <select id="sizeSelect" aria-label="画像の長辺">
             <option value="360">360px</option>
             <option value="480">480px</option>
             <option value="640">640px</option>
             <option value="720">720px</option>
           </select>
-        </div>
-        <div class="adv-field">
-          <label for="fpsSelect">目標fps</label>
-          <select id="fpsSelect">
+        </label>
+        <label class="fine-field">fps
+          <select id="fpsSelect" aria-label="目標fps（1秒に撮る枚数）">
             <option value="8">8</option>
             <option value="10">10</option>
             <option value="12">12</option>
@@ -512,23 +616,32 @@
             <option value="20">20</option>
             <option value="30">30</option>
           </select>
-        </div>
+        </label>
       </div>
-      <details class="adv-more" id="advMore">
-        <summary>
-          <span>実測値と説明</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-        </summary>
+      <!-- 選んだプリセットの記録用（画面には出さない） -->
+      <select id="presetSelect" hidden aria-hidden="true" tabindex="-1">
+        <option value="stable">安定</option>
+        <option value="smooth">なめらか</option>
+        <option value="clear">きれい</option>
+        <option value="high">高性能</option>
+        <option value="custom">カスタム</option>
+      </select>
+      <div class="stats-panel" id="statsPanel" hidden>
         <div class="stat-grid" aria-live="off">
           <div class="stat"><small>実測取得</small><strong id="statFps">—</strong></div>
           <div class="stat"><small>画像サイズ</small><strong id="statSize">—</strong></div>
           <div class="stat"><small>使用メモリ</small><strong id="statMem">—</strong></div>
         </div>
-        <p class="adv-note" id="advNote"><strong>fps</strong>＝1秒間に撮る写真の枚数です。パラパラ漫画のページ数と同じで、多いほど動きがなめらかに見えます（12fpsなら1秒に12枚）。実測取得は、実際に撮れた枚数（直近約5秒の平均）。画質・fps・遅延時間を上げるほど端末が重く・熱くなるので、古いiPadは「安定」がおすすめです。</p>
-        <a class="adv-link" href="guide.html#quality">画質の選び方と10秒保存（動画つきガイド）</a>
-      </details>
+        <p class="adv-note" id="advNote"><strong>fps</strong>＝1秒間に撮る写真の枚数。パラパラ漫画と同じで、多いほど動きがなめらかです。実測取得は、実際に撮れた枚数（直近約5秒の平均）。目標に届かない状態が続いたら一段下げてください。</p>
+      </div>
+      <div class="adv-actions">
+        <button type="button" class="adv-action" id="statsToggle" aria-expanded="false" aria-controls="statsPanel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16v-4"/><path d="M12 16V8"/><path d="M17 16v-6"/></svg>
+          <span>実測値</span>
+        </button>
+      </div>
     </div>
-  </details>
+  </div>
 </div>
 <div class="clip-modal" id="clipModal" hidden role="dialog" aria-modal="true" aria-labelledby="clipTitle">
   <div class="clip-card">
@@ -579,6 +692,12 @@
   const statFps         = document.getElementById('statFps');
   const statSize        = document.getElementById('statSize');
   const statMem         = document.getElementById('statMem');
+  const bufferPill      = document.getElementById('bufferPill');
+  const bufferPillMain  = document.getElementById('bufferPillMain');
+  const bufferPillSub   = document.getElementById('bufferPillSub');
+  const statsToggle     = document.getElementById('statsToggle');
+  const statsPanel      = document.getElementById('statsPanel');
+  const presetChips     = Array.from(document.querySelectorAll('.chip[data-preset]'));
   const clipBtn         = document.getElementById('clipBtn');
   const clipModal       = document.getElementById('clipModal');
   const clipTitle       = document.getElementById('clipTitle');
@@ -684,8 +803,15 @@
   function applyQuality(save) {
     captureMaxDim = parseInt(sizeSelect.value, 10);
     targetFps = parseInt(fpsSelect.value, 10);
-    const p = PRESETS[presetSelect.value];
-    advSummary.textContent = (p ? p.label : 'カスタム') + ' ・ ' + captureMaxDim + 'px / ' + targetFps + 'fps';
+    advSummary.textContent = captureMaxDim + 'px・' + targetFps + 'fps';
+    const qualityNow = document.getElementById('qualityNow');
+    const pName = PRESETS[presetSelect.value];
+    if (qualityNow) qualityNow.textContent = (pName ? pName.label + '・' : '') + captureMaxDim + 'px・' + targetFps + 'fps';
+    presetChips.forEach((chip) => {
+      const on = chip.dataset.preset === presetSelect.value;
+      chip.classList.toggle('on', on);
+      chip.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
     if (save) {
       try {
         localStorage.setItem(SETTINGS_KEY, JSON.stringify({ preset: presetSelect.value, size: captureMaxDim, fps: targetFps }));
@@ -703,15 +829,27 @@
     if (p) { sizeSelect.value = String(p.size); fpsSelect.value = String(p.fps); }
     applyQuality(true);
   });
+  presetChips.forEach((chip) => chip.addEventListener('click', () => {
+    presetSelect.value = chip.dataset.preset;
+    presetSelect.dispatchEvent(new Event('change'));
+  }));
+  statsToggle.addEventListener('click', () => {
+    const open = statsPanel.hidden;
+    statsPanel.hidden = !open;
+    statsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
   [sizeSelect, fpsSelect].forEach((el) => el.addEventListener('change', () => {
     presetSelect.value = 'custom';
     applyQuality(true);
   }));
-  try { if (localStorage.getItem(SETTINGS_KEY + '.open') === '1') advanced.open = true; } catch (err) { /* 無視 */ }
-  advanced.addEventListener('toggle', () => {
-    try { localStorage.setItem(SETTINGS_KEY + '.open', advanced.open ? '1' : '0'); } catch (err) { /* 無視 */ }
-    requestAnimationFrame(resizeCanvas);
-  });
+  // 「画質」ボタンで選択肢を下から引き出す。外側・✕・Escで閉じる
+  const qualityBtn    = document.getElementById('qualityBtn');
+  const sheetBackdrop = document.getElementById('sheetBackdrop');
+  const sheetClose    = document.getElementById('sheetClose');
+  qualityBtn.addEventListener('click', () => (advanced.hidden ? openQualitySheet() : closeQualitySheet()));
+  sheetBackdrop.addEventListener('click', () => closeQualitySheet());
+  sheetClose.addEventListener('click', () => closeQualitySheet());
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeQualitySheet(); });
 
   function resetStats() {
     captureTimes = [];
@@ -731,6 +869,7 @@
   loadQuality();
 
   function toggleUI() {
+    closeQualitySheet();
     isUIHidden = !isUIHidden;
     document.body.classList.toggle('ui-hidden', isUIHidden);
     setFsIcon(isUIHidden);
@@ -781,9 +920,15 @@
   function updateControlState() {
     const isFront = currentFacingMode === 'user';
     cameraState.textContent = isFront ? 'インカメラ' : 'アウトカメラ';
-    mirrorState.textContent = mirrored ? 'ミラー ON' : 'ミラー OFF';
+    mirrorState.textContent = mirrored ? '左右反転 ON' : '左右反転 OFF';
     rotateState.textContent = `回転 ${rotationDeg}°`;
-    // ボタンには「今どちらか」ではなく「押すとどうなるか」を出す
+    // 状態はボタン自体で示す：反転がONなら青く光る、回転中は角度を出す
+    mirrorBtn.classList.toggle('on', mirrored);
+    mirrorBtn.setAttribute('aria-pressed', mirrored ? 'true' : 'false');
+    const rotateLabel = document.getElementById('rotateLabel');
+    rotateLabel.textContent = rotationDeg ? `回転 ${rotationDeg}°` : '回転';
+    rotateBtn.classList.toggle('on', rotationDeg !== 0);
+    // カメラのボタンには「今どちらか」ではなく「押すとどうなるか」を出す
     cameraSwitchLabel.textContent = isFront ? 'アウトへ' : 'インへ';
     cameraSwitchBtn.setAttribute('aria-label',
       isFront ? 'アウトカメラに切り替える' : 'インカメラに切り替える');
@@ -825,10 +970,12 @@
     delayBadge.style.display = 'none';
     bufferIndicator.style.display = 'none';
     warmupText.style.display = 'none';
+    bufferPill.hidden = true;
     fullscreenBtn.style.display = 'none';
     clipBtn.style.display = 'none';
     clipBtn.disabled = true;
     closeClipModal();
+    closeQualitySheet();
     cameraSwitchBtn.disabled = true;
     statusText.textContent = '待機中';
     statusDot.classList.remove('live');
@@ -852,6 +999,10 @@
       delayBadge.style.display = 'flex';
       bufferIndicator.style.display = 'block';
       warmupText.style.display = 'block';
+      bufferPill.hidden = false;
+      bufferPill.classList.remove('ready');
+      bufferPillMain.textContent = '映像をためています';
+      bufferPillSub.textContent = '';
       fullscreenBtn.style.display = 'flex';
       clipBtn.style.display = 'inline-flex';
       clipBtn.disabled = true;
@@ -1002,6 +1153,9 @@
     decodingFrame = null;
     decodeToken++;
     clipBtn.disabled = true;
+    bufferPill.classList.remove('ready');
+    bufferPillMain.textContent = '映像をためています';
+    bufferPillSub.textContent = '';
     resetStats();
   }
 
@@ -1045,13 +1199,20 @@
     const bufferedSeconds = (frameBuffer[frameBuffer.length - 1].t - frameBuffer[0].t) / 1000;
     bufferText.textContent = bufferedSeconds.toFixed(1) + 's';
     if (bufferedSeconds < delaySeconds) {
+      const remain = Math.max(0, delaySeconds - bufferedSeconds).toFixed(1);
       warmupText.style.display = 'block';
-      warmupText.querySelector('strong').textContent = `${bufferedSeconds.toFixed(1)}s / ${delaySeconds}s`;
+      warmupText.querySelector('strong').textContent = `${remain}秒`;
+      bufferPill.classList.remove('ready');
+      bufferPillMain.textContent = `あと ${remain}秒`;
+      bufferPillSub.textContent = `ためた映像 ${bufferedSeconds.toFixed(1)} / ${delaySeconds}秒`;
       statusText.textContent = '準備中';
       return;
     }
 
     warmupText.style.display = 'none';
+    bufferPill.classList.add('ready');
+    bufferPillMain.textContent = `ためた映像 ${bufferedSeconds.toFixed(1)}秒`;
+    bufferPillSub.textContent = '';
     statusText.textContent = '撮影中';
 
     const targetTime = performance.now() - delaySeconds * 1000;
@@ -1097,6 +1258,21 @@
     if (stream && !options.keepStream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     if (!options.keepStream) liveVideo.srcObject = null;
     clearBuffer();
+  }
+
+  function openQualitySheet() {
+    advanced.hidden = false;
+    sheetBackdrop.hidden = false;
+    document.body.classList.add('sheet-open');
+    qualityBtn.classList.add('on');
+    qualityBtn.setAttribute('aria-expanded', 'true');
+  }
+  function closeQualitySheet() {
+    advanced.hidden = true;
+    sheetBackdrop.hidden = true;
+    document.body.classList.remove('sheet-open');
+    qualityBtn.classList.remove('on');
+    qualityBtn.setAttribute('aria-expanded', 'false');
   }
 
   // ── 今の10秒を保存 ──
