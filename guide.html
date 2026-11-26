@@ -3,195 +3,327 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#070B14">
+<meta name="theme-color" content="#20334a">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>エコーミラー — 使い方ガイド</title>
 <style>
-  :root { --bg:#070B14; --surface:#101827; --surface-2:#172236; --text:#EAF1FF; --muted:#94A7C4; --line:rgba(234,241,255,.14); --ready:#60A5FA; --focus:#22D3EE; --warn:#FBBF24; }
+  /* 配色は Bodywork工学 Library の最近の記事（生成りの紙＋紺の文字＋青）に合わせる。上の帯だけアプリと同じ紺 */
+  :root {
+    --paper: #fff9ed; --panel: #fffdf7; --ink: #20334a; --muted: #526473; --rule: #d8d5c7;
+    --blue: #1954ae; --blue-paper: #eef4fb; --blue-border: #c5d7ee;
+    --rust: #a84832; --teal-paper: #eaf3ee; --gold-paper: #fff2d8; --navy: #101a2b;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { -webkit-text-size-adjust: 100%; }
-  body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', 'Hiragino Sans', system-ui, sans-serif; line-height: 1.75; }
-  .top { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; background: #0A1020; border-bottom: 1px solid var(--line); }
-  .top .title { font-size: 14px; font-weight: 750; letter-spacing: .06em; }
-  .back { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 8px; background: var(--ready); color: #06121F; font-weight: 800; font-size: 14px; text-decoration: none; }
-  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
-  h1 { font-size: 26px; line-height: 1.35; margin-bottom: 8px; }
-  .lead { color: var(--muted); font-size: 15px; }
-  video { display: block; width: 100%; margin: 20px 0 8px; border-radius: 12px; border: 1px solid var(--line); background: #000; aspect-ratio: 16 / 9; }
-  .vnote { color: var(--muted); font-size: 12px; }
-  h2 { font-size: 20px; margin: 36px 0 12px; padding-top: 18px; border-top: 1px solid var(--line); }
-  p { font-size: 15px; margin: 10px 0; }
-  strong { color: #fff; }
-  ul, ol { margin: 10px 0 10px 1.3em; font-size: 15px; }
-  li { margin: 6px 0; }
-  .table-wrap { overflow-x: auto; margin: 12px 0; -webkit-overflow-scrolling: touch; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 420px; }
-  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 700; font-size: 12px; background: var(--surface); }
-  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
-  .box.key { border-color: rgba(96,165,250,.5); }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body { background: var(--paper); color: var(--ink); font-family: 'BIZ UDPGothic', 'Hiragino Sans', 'Yu Gothic UI', system-ui, sans-serif; line-height: 1.75; }
+  a { color: var(--blue); }
+
+  /* 上部：戻る＋3つの導線（どこから来ても迷わないよう固定） */
+  .top { position: sticky; top: 0; z-index: 10; background: var(--navy); color: #eaf1ff; box-shadow: 0 2px 10px rgba(16,26,43,.25); }
+  .top-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; max-width: 760px; margin: 0 auto; padding: 8px 16px; }
+  .top-title { font-size: 14px; font-weight: 800; letter-spacing: .04em; }
+  .back { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 14px; border-radius: 8px; background: #60a5fa; color: #06121f; font-size: 14px; font-weight: 800; text-decoration: none; }
+  .back svg { width: 16px; height: 16px; }
+  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); max-width: 760px; margin: 0 auto; padding: 0 10px 8px; gap: 6px; }
+  .tabs a { display: flex; align-items: center; justify-content: center; min-height: 36px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(234,241,255,.18); color: #eaf1ff; font-size: 13px; font-weight: 800; text-decoration: none; }
+  .tabs a.on { background: #eaf1ff; color: var(--navy); }
+
+  main { max-width: 760px; margin: 0 auto; padding: 20px 16px 56px; }
+  section { scroll-margin-top: 104px; margin-top: 30px; }
+  section:first-of-type { margin-top: 8px; }
+  .eyebrow { color: var(--blue); font-size: 12px; font-weight: 800; letter-spacing: .12em; }
+  h2 { font-size: 24px; line-height: 1.35; margin: 2px 0 12px; }
+  h3 { font-size: 17px; margin: 22px 0 8px; }
+  p { font-size: 15px; margin: 8px 0; }
   .muted { color: var(--muted); font-size: 13px; }
-  h3 { font-size: 17px; margin: 26px 0 8px; color: #fff; }
-  h2[id] { scroll-margin-top: 70px; }
-  a { color: var(--ready); }
-  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; }
-  .toc a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text); font-size: 13px; font-weight: 700; text-decoration: none; }
-  .yt { position: relative; margin: 14px 0 6px; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+  strong { color: var(--ink); }
+
+  /* 結論・要点の箱 */
+  .lead-box { background: var(--blue-paper); border: 1px solid var(--blue-border); border-left: 5px solid var(--blue); border-radius: 12px; padding: 14px 16px; margin: 12px 0; }
+  .lead-box b { display: block; font-size: 18px; color: var(--blue); line-height: 1.45; }
+  .lead-box p { margin: 6px 0 0; font-size: 14px; }
+  .warn-box { background: var(--gold-paper); border: 1px solid #ecd3a3; border-radius: 12px; padding: 12px 14px; margin: 12px 0; font-size: 14px; }
+
+  /* 番号つきステップカード */
+  .steps { list-style: none; display: grid; gap: 8px; margin: 12px 0; counter-reset: s; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; }
+  .steps li::before { content: counter(s); width: 30px; height: 30px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 15px; font-weight: 900; }
+  .steps b { display: block; font-size: 15px; }
+  .steps span { display: block; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* 小さな操作チップ */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .chips span { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--teal-paper); border: 1px solid #cfe2d6; }
+
+  /* プリセットカード */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+  .card { position: relative; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 12px 10px; }
+  .card.default { border-color: var(--blue-border); box-shadow: inset 0 0 0 1px var(--blue-border); }
+  .card .tag { display: inline-block; font-size: 10px; font-weight: 800; color: var(--blue); background: var(--blue-paper); border-radius: 999px; padding: 1px 8px; margin-bottom: 4px; }
+  .card h4 { font-size: 17px; line-height: 1.3; }
+  .card .spec { font-size: 12px; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .meter { display: flex; align-items: center; gap: 6px; margin: 8px 0 6px; font-size: 11px; color: var(--muted); font-weight: 700; }
+  .meter i { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; width: 86px; }
+  .meter i b { height: 8px; border-radius: 2px; background: #e6e2d6; }
+  .meter i b.f { background: var(--blue); }
+  .meter i.hot b.f { background: var(--rust); }
+  .card dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; font-size: 12px; }
+  .card dt { color: var(--muted); font-weight: 700; }
+  .card dd { font-weight: 700; }
+
+  /* 症状からの逆引き */
+  .fix { display: grid; gap: 6px; margin: 10px 0; }
+  .fix div { display: grid; grid-template-columns: 1fr 22px 1fr; align-items: center; gap: 6px; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+  .fix div span:first-child { font-weight: 700; }
+  .fix div svg { width: 20px; height: 20px; color: var(--blue); }
+  .fix div span:last-child { font-weight: 800; color: var(--blue); }
+
+  /* 折りたたみ */
+  details.more { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; margin: 8px 0; }
+  details.more summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 0 14px; font-size: 15px; font-weight: 800; cursor: pointer; }
+  details.more summary::-webkit-details-marker { display: none; }
+  details.more summary svg { width: 18px; height: 18px; color: var(--muted); transition: transform .2s; flex: none; }
+  details.more[open] summary svg { transform: rotate(180deg); }
+  details.more .in { padding: 0 14px 12px; }
+  details.more .in p, details.more .in li { font-size: 14px; }
+  details.more ul, details.more ol { margin: 6px 0 6px 1.2em; }
+
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 8px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 340px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { color: var(--muted); font-size: 12px; background: #f6efe0; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* 図解 */
+  figure.mini { margin: 12px 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 10px; }
+  figure.mini svg { display: block; width: 100%; height: auto; max-width: 420px; margin: 0 auto; }
+  figure.mini figcaption { text-align: center; font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* YouTube（押したときだけ読み込む） */
+  .yt { position: relative; margin: 12px 0 4px; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--rule); background: #101a2b; }
   .yt button { all: unset; position: absolute; inset: 0; cursor: pointer; display: grid; place-items: center; background-size: cover; background-position: center; }
-  .yt button span { display: grid; place-items: center; width: 72px; height: 50px; border-radius: 14px; background: rgba(220,38,38,.92); box-shadow: 0 6px 18px rgba(0,0,0,.45); }
-  .yt button span::before { content: ''; border-style: solid; border-width: 11px 0 11px 18px; border-color: transparent transparent transparent #fff; margin-left: 4px; }
+  .yt button span { display: grid; place-items: center; width: 68px; height: 48px; border-radius: 14px; background: rgba(220,38,38,.92); box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+  .yt button span::before { content: ''; border-style: solid; border-width: 10px 0 10px 17px; border-color: transparent transparent transparent #fff; margin-left: 4px; }
   .yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-  .yt .soon { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; background: var(--surface); }
-  .yt-open { font-size: 13px; }
+  .yt-open { font-size: 13px; margin: 0 0 8px; }
+
+  .end { margin-top: 36px; text-align: center; }
+  :focus-visible { outline: 3px solid #60a5fa; outline-offset: 2px; }
+  @media (max-width: 380px) { .cards { grid-template-columns: 1fr; } }
+  @media (min-width: 640px) { .cards { grid-template-columns: repeat(4, 1fr); } }
 </style>
 </head>
 <body>
-<div class="top">
-  <span class="title">エコーミラー ・ 使い方ガイド</span>
-  <a class="back" href="./">ミラーに戻る</a>
-</div>
-<main>
-  <h1>エコーミラーの使い方</h1>
-  <p class="lead">はじめての使い方、画質の調整、いい場面を10秒だけ動画で残す方法。</p>
-  <nav class="toc" aria-label="目次">
-    <a href="#basic">はじめての使い方</a>
-    <a href="#quality">画質と滑らかさ</a>
-    <a href="#save">今の10秒を保存</a>
+<header class="top">
+  <div class="top-row">
+    <span class="top-title">エコーミラー ・ 使い方ガイド</span>
+    <a class="back" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>ミラーに戻る</a>
+  </div>
+  <nav class="tabs" aria-label="目次">
+    <a href="#basic" data-s="basic">はじめ方</a>
+    <a href="#quality" data-s="quality">画質の選び方</a>
+    <a href="#save" data-s="save">10秒保存</a>
   </nav>
+</header>
 
-  <h2 id="basic">はじめての使い方</h2>
-  <div class="yt" data-yt="DrTeuqhx2Sk" data-title="エコーミラー はじめての使い方"></div>
-  <p class="vnote">約1分・音声あり（YouTube）。映像の人物は動作確認用のCGです。</p>
-  <ol>
-    <li><strong>端末を置く。</strong>タブレットやスマホを、全身が映る場所に立てて置きます。</li>
-    <li><strong>カメラを開始する。</strong>カメラへのアクセスを許可します。</li>
-    <li><strong>遅延時間を決める。</strong>スライダーで2〜90秒から選びます。10秒なら、画面に映るのは10秒前の自分です。</li>
-    <li><strong>最初だけ待つ。</strong>映像をためるため、設定した秒数ぶん待ちます。</li>
-    <li><strong>動いて、それから画面を見る。</strong>動いている間は画面を見ず、終わってから見ます。</li>
-  </ol>
-  <p>いい場面が映ったら、映像右上の「今の10秒を保存」で動画にして残せます（<a href="#save">くわしく</a>）。カメラの切り替え・左右反転・回転・全画面は、画面下のボタンで操作します。タブレットはホーム画面に追加すると、アプリのように使えます。</p>
+<main>
+  <!-- ───────── はじめ方 ───────── -->
+  <section id="basic">
+    <div class="eyebrow">BASIC</div>
+    <h2>はじめ方</h2>
+    <div class="yt" data-yt="DrTeuqhx2Sk" data-title="エコーミラー はじめての使い方"></div>
+    <p class="muted">約1分・音声あり。映像の人物は動作確認用のCGです。</p>
+    <ol class="steps">
+      <li><div><b>端末を置く</b><span>タブレットやスマホを、全身が映る場所に立てて置きます。</span></div></li>
+      <li><div><b>「カメラを開始」を押す</b><span>カメラへのアクセスを許可します。映像は端末の中だけで使われます。</span></div></li>
+      <li><div><b>遅延時間を決める</b><span>スライダーで2〜90秒。10秒なら、画面に映るのは10秒前の自分です。最初だけ、その秒数ぶん映像をためて待ちます。</span></div></li>
+      <li><div><b>動いて、それから画面を見る</b><span>動いている間は画面を見ず、終わってから見ます。</span></div></li>
+    </ol>
+    <p class="muted">画面下のボタン</p>
+    <div class="chips"><span>アウトへ／インへ（カメラ切替）</span><span>反転（左右）</span><span>回転</span><span>全画面</span><span>停止</span></div>
+    <p class="muted">タブレットはホーム画面に追加すると、アプリのように使えます。一度読み込めば、回線がなくても動きます。</p>
+  </section>
 
-  <h2 id="quality">画質と滑らかさ</h2>
-  <div class="yt" data-yt="vP_y46IlYuY" data-title="エコーミラー 画質の調整と、今の10秒を保存"></div>
-  <p class="vnote">約1分30秒・音声あり（YouTube）。1:14からは「今の10秒を保存」です。</p>
+  <!-- ───────── 画質の選び方 ───────── -->
+  <section id="quality">
+    <div class="eyebrow">QUALITY</div>
+    <h2>画質と滑らかさの選び方</h2>
+    <div class="lead-box">
+      <b>まずは初期設定のままでOKです。</b>
+      <p>iPadは「安定」、ほかの端末は「なめらか」で始まります。物足りないときだけ、画面下の横長ボタン「画質と滑らかさ」から変えます。</p>
+    </div>
 
-  <h3>最初は何も変えなくて大丈夫</h3>
-  <p>初期設定は、古いiPadでも止まらないように軽めにしてあります。</p>
-  <ul>
-    <li>iPad：<strong>安定</strong>（画像の長辺 360px・12fps）</li>
-    <li>それ以外のスマホやパソコン：<strong>なめらか</strong>（480px・15fps）</li>
-    <li>遅延時間：10秒</li>
-  </ul>
-  <p>まずはこのまま使ってみて、物足りなく感じたら調整してください。</p>
+    <figure class="mini">
+      <svg viewBox="0 0 420 210" role="img" aria-label="操作欄の下にある横長の「画質と滑らかさ」ボタンを押すと、4つの設定ボタンが出る図">
+        <rect x="10" y="8" width="190" height="194" rx="14" fill="#101a2b"/>
+        <rect x="22" y="22" width="166" height="70" rx="6" fill="#26364f"/>
+        <g fill="#1d2a40" stroke="#3a4c68"><rect x="22" y="104" width="30" height="24" rx="4"/><rect x="56" y="104" width="30" height="24" rx="4"/><rect x="90" y="104" width="30" height="24" rx="4"/><rect x="124" y="104" width="30" height="24" rx="4"/><rect x="158" y="104" width="30" height="24" rx="4"/></g>
+        <rect x="22" y="136" width="166" height="24" rx="6" fill="#1d2a40" stroke="#60a5fa" stroke-width="2.5"/>
+        <text x="105" y="152" text-anchor="middle" font-size="11" font-weight="700" fill="#eaf1ff">画質と滑らかさ</text>
+        <rect x="22" y="166" width="166" height="24" rx="6" fill="#1a2f52" stroke="#5b86c9"/>
+        <text x="105" y="182" text-anchor="middle" font-size="10" font-weight="700" fill="#cfe3ff">使い方ガイド</text>
+        <path d="M200 148 C 225 148, 225 110, 248 110" fill="none" stroke="#1954ae" stroke-width="2.5" stroke-dasharray="5 4"/>
+        <path d="M244 104 l8 6 -8 6" fill="none" stroke="#1954ae" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="256" y="56" width="154" height="120" rx="12" fill="#fffdf7" stroke="#c5d7ee"/>
+        <g font-size="11" font-weight="700" text-anchor="middle">
+          <rect x="266" y="70" width="64" height="24" rx="6" fill="#eef4fb" stroke="#1954ae"/><text x="298" y="86" fill="#1954ae">安定</text>
+          <rect x="336" y="70" width="64" height="24" rx="6" fill="#fff" stroke="#d8d5c7"/><text x="368" y="86" fill="#20334a">なめらか</text>
+          <rect x="266" y="100" width="64" height="24" rx="6" fill="#fff" stroke="#d8d5c7"/><text x="298" y="116" fill="#20334a">きれい</text>
+          <rect x="336" y="100" width="64" height="24" rx="6" fill="#fff" stroke="#d8d5c7"/><text x="368" y="116" fill="#20334a">高性能</text>
+        </g>
+        <text x="333" y="146" text-anchor="middle" font-size="10" fill="#526473">画質・fps を個別に選ぶ欄</text>
+        <text x="333" y="164" text-anchor="middle" font-size="10" fill="#526473">実測値</text>
+      </svg>
+      <figcaption>ボタン列の下の「画質と滑らかさ」を押すと、選択肢が下から出ます</figcaption>
+    </figure>
 
-  <h3>調整できるのは2つ</h3>
-  <p>画面下の「画質と滑らかさ」を押すと開きます。</p>
-  <div class="table-wrap"><table>
-    <tr><th>項目</th><th>意味</th><th>上げるとよくなること</th></tr>
-    <tr><td>画質（画像の長辺）</td><td>映像の細かさ（360〜720px）</td><td>手先・足先の向き、細かい姿勢が見やすくなる</td></tr>
-    <tr><td>目標fps</td><td>1秒に撮る枚数（8〜30）</td><td>速い動きがカクカクせず、なめらかに見える</td></tr>
-  </table></div>
-  <div class="box">
-    <p style="margin-top:0"><strong>fps（エフピーエス）とは</strong>：1秒間に何枚の写真を撮るか、という数です。パラパラ漫画と同じで、枚数が多いほど動きがなめらかに見え、少ないとカクカクします。12fpsなら1秒に12枚、30fpsなら30枚。テレビや映画は1秒に24〜30枚ほどです。</p>
-    <p style="margin-bottom:0"><strong>px（ピクセル）とは</strong>：画像の細かさです。360pxは、画像の長い辺に点が360個並ぶ細かさ。数が大きいほど、手先や足先までくっきり見えます。</p>
-  </div>
-  <p>「安定・なめらか・きれい・高性能」の4つのボタンから選ぶと、この2つがまとめて決まります。その下の「細かく」で、画質とfpsを1つずつ選ぶこともできます。</p>
-  <div class="box key">
-    <p><strong>「カスタム」は、画質とfpsを「細かく」で自分で選んでいる状態です。</strong>このときは4つのボタンのどれも光りません。壊れたわけではありません。4つのボタンのどれかを押せば、いつでも元に戻せます。</p>
-  </div>
-  <p>上げ方の基本は、<strong>見たいものに合わせて片方だけ一段上げる</strong>ことです。手先や足先をよく見たいなら画像の長辺を、速い動きをなめらかに見たいなら目標fpsを上げます。</p>
+    <h3>4つの設定</h3>
+    <div class="cards">
+      <div class="card default">
+        <span class="tag">iPadの初期設定</span>
+        <h4>安定</h4>
+        <div class="spec">360px・12fps</div>
+        <div class="meter">重さ<i><b class="f"></b><b></b><b></b><b></b><b></b></i></div>
+        <dl><dt>向く端末</dt><dd>古いiPad</dd><dt>メモリ</dt><dd>約15MB</dd></dl>
+      </div>
+      <div class="card default">
+        <span class="tag">そのほかの初期設定</span>
+        <h4>なめらか</h4>
+        <div class="spec">480px・15fps</div>
+        <div class="meter">重さ<i><b class="f"></b><b class="f"></b><b></b><b></b><b></b></i></div>
+        <dl><dt>向く端末</dt><dd>一般的なスマホ・PC</dd><dt>メモリ</dt><dd>約28MB</dd></dl>
+      </div>
+      <div class="card">
+        <h4>きれい</h4>
+        <div class="spec">640px・15fps</div>
+        <div class="meter">重さ<i><b class="f"></b><b class="f"></b><b class="f"></b><b></b><b></b></i></div>
+        <dl><dt>向く端末</dt><dd>2019年以降の端末</dd><dt>メモリ</dt><dd>約43MB</dd></dl>
+      </div>
+      <div class="card">
+        <h4>高性能</h4>
+        <div class="spec">720px・30fps</div>
+        <div class="meter">重さ<i class="hot"><b class="f"></b><b class="f"></b><b class="f"></b><b class="f"></b><b class="f"></b></i></div>
+        <dl><dt>向く端末</dt><dd>パソコン・最近のiPad Pro</dd><dt>メモリ</dt><dd>約110MB</dd></dl>
+      </div>
+    </div>
+    <p class="muted">重さは「安定」を1として、なめらか約2倍・きれい約4倍・高性能約10倍。メモリは遅延90秒のときの多めの見積もりです。向く端末は計算からの目安で、最後は手元の「実測値」で確かめます。</p>
 
-  <h3>負荷の目安</h3>
-  <p>端末が1秒間に処理する量は、おおよそ<strong>画像の長辺の2乗 × fps</strong>に比例します。「安定」を1とすると次のとおりです。</p>
-  <div class="table-wrap"><table>
-    <tr><th>設定</th><th>長辺</th><th>fps</th><th>負荷（安定＝1）</th></tr>
-    <tr><td>安定</td><td class="num">360px</td><td class="num">12</td><td class="num">1</td></tr>
-    <tr><td>なめらか</td><td class="num">480px</td><td class="num">15</td><td class="num">約2.2</td></tr>
-    <tr><td>きれい</td><td class="num">640px</td><td class="num">15</td><td class="num">約4</td></tr>
-    <tr><td>高性能向け</td><td class="num">720px</td><td class="num">30</td><td class="num">約10</td></tr>
-  </table></div>
-  <p>長辺を2倍にすると負荷は4倍、fpsを2倍にすると負荷は2倍です。<strong>画質を上げるほうが、fpsを上げるより重くなりやすい</strong>と覚えておくと選びやすくなります。</p>
-  <p class="muted">カスタムの例</p>
-  <div class="table-wrap"><table>
-    <tr><th>組み合わせ</th><th>負荷（安定＝1）</th><th>向いている場面</th></tr>
-    <tr><td class="num">360px・20fps</td><td class="num">約1.7</td><td>速い動きを、軽いまま見たい</td></tr>
-    <tr><td class="num">480px・12fps</td><td class="num">約1.8</td><td>少しだけ細かく見たい</td></tr>
-    <tr><td class="num">640px・10fps</td><td class="num">約2.6</td><td>ゆっくりした動きで、手先や足先を見たい</td></tr>
-    <tr><td class="num">480px・30fps</td><td class="num">約4.4</td><td>ジャンプや素早い切り返しを見たい</td></tr>
-    <tr><td class="num">720px・15fps</td><td class="num">約5</td><td>細部をしっかり見たい（新しめの端末向け）</td></tr>
-  </table></div>
+    <h3>こんなときは</h3>
+    <div class="fix">
+      <div><span>ぼやける・手先が見えにくい</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13"/><path d="M13 7l5 5-5 5"/></svg><span>画質（px）を一段上げる</span></div>
+      <div><span>動きがカクカクする</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13"/><path d="M13 7l5 5-5 5"/></svg><span>fpsを一段上げる</span></div>
+      <div><span>熱い・止まる・実測が目標に届かない</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13"/><path d="M13 7l5 5-5 5"/></svg><span>一段下げる</span></div>
+    </div>
+    <p class="muted">上げるときは、画質かfpsの片方だけを一段ずつ。</p>
 
-  <h3>端末ごとの目安</h3>
-  <p>下の表は、どこまで試す価値があるかの目安です。実機ごとに測ったものではなく、上の負荷の計算と端末の世代から見積もっています。同じ世代でも、ほかのアプリの使用状況や発熱で変わります。<strong>限界は、手元の端末で次の「実測取得」を見て判断してください。</strong></p>
-  <div class="table-wrap"><table>
-    <tr><th>端末の例</th><th>まず試す範囲</th></tr>
-    <tr><td>古いiPad（2018年ごろまでのモデル）</td><td>安定。余裕があれば、なめらか（負荷約2倍）まで</td></tr>
-    <tr><td>2019年以降のiPad・iPhone、一般的なスマホ</td><td>なめらか〜きれい（負荷約2〜4倍）</td></tr>
-    <tr><td>最近のiPad Pro・iPhone、パソコン</td><td>高性能向け（負荷約10倍）まで</td></tr>
-  </table></div>
-  <p>とても古いiPadで「安定」でも実測が12fpsに届かないときは、「細かく」でfpsを10に、それでも届かなければ8にしてください。</p>
+    <div class="yt" data-yt="vP_y46IlYuY" data-title="エコーミラー 画質の調整と、今の10秒を保存"></div>
+    <p class="muted">動画でも説明しています（約1分30秒）。</p>
 
-  <h3>無理をしているサイン</h3>
-  <p>開いた中の「実測取得」と「使用メモリ」を見ます。あわせて、体感のサインにも気を配ります。</p>
-  <ol>
-    <li><strong>実測取得が目標fpsに届かない。</strong>実測取得は、実際に1秒間に撮れた枚数（直近約5秒の平均）です。目標の9割を下回る状態が続いたら、端末が追いついていません。一段下げてください（例：目標15fpsで実測13.5fps未満が続く）。設定を変えたあとは、数秒待ってから見ます。</li>
-    <li><strong>使用メモリが上限に近い。</strong>ためている映像の合計です。上限（iPad 80MB、それ以外 120MB）を超えると、アプリが自動で止まります。近づいてきたら、遅延時間・画像の長辺・目標fpsのどれかを下げてください。</li>
-    <li><strong>端末が熱い・電池の減りが速い・操作がもたつく。</strong>数字に出なくても、下げどきのサインです。長時間置きっぱなしで使うなら、余裕のある設定にしておくと安心です。</li>
-  </ol>
+    <h3>くわしく知りたい人へ</h3>
+    <details class="more">
+      <summary>fps・px・カスタムとは<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="in">
+        <p><strong>fps</strong>：1秒間に撮る写真の枚数です。パラパラ漫画と同じで、多いほど動きがなめらかに見え、少ないとカクカクします。12fpsなら1秒に12枚。テレビや映画は1秒に24〜30枚ほどです。</p>
+        <p><strong>px（画質）</strong>：画像の細かさです。360pxは、画像の長い辺に点が360個並ぶ細かさ。大きいほど手先や足先までくっきり見えます。</p>
+        <p><strong>カスタム</strong>：「画質」と「fps」の欄で1つずつ選んだ状態です。このとき4つの設定ボタンはどれも光りません。壊れたわけではなく、4つのどれかを押せば戻ります。</p>
+      </div>
+    </details>
+    <details class="more">
+      <summary>重さの仕組みと、組み合わせの例<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="in">
+        <p>端末が1秒間に処理する量は、おおよそ <strong>画質（長辺）の2乗 × fps</strong> に比例します。長辺を2倍にすると4倍、fpsを2倍にすると2倍。画質を上げるほうが重くなりやすい、と覚えておくと選びやすくなります。</p>
+        <div class="table-wrap"><table>
+          <tr><th>組み合わせ</th><th>重さ（安定＝1）</th><th>向いている場面</th></tr>
+          <tr><td class="num">360px・20fps</td><td class="num">約1.7</td><td>速い動きを、軽いまま見たい</td></tr>
+          <tr><td class="num">480px・12fps</td><td class="num">約1.8</td><td>少しだけ細かく見たい</td></tr>
+          <tr><td class="num">640px・10fps</td><td class="num">約2.6</td><td>ゆっくりした動きで手先や足先を見たい</td></tr>
+          <tr><td class="num">480px・30fps</td><td class="num">約4.4</td><td>ジャンプや素早い切り返しを見たい</td></tr>
+          <tr><td class="num">720px・15fps</td><td class="num">約5</td><td>細部をしっかり見たい（新しめの端末）</td></tr>
+        </table></div>
+      </div>
+    </details>
+    <details class="more">
+      <summary>無理をしているサインの見分け方<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="in">
+        <p>「画質と滑らかさ」の中の「実測値」を押すと、実際に撮れている枚数（実測取得）・画像サイズ・使用メモリが出ます。</p>
+        <ol>
+          <li><strong>実測取得が目標のfpsに届かない</strong>：目標の9割を下回る状態が続いたら一段下げます（例：目標15fpsで13.5fps未満）。設定を変えたあとは数秒待ってから見ます。</li>
+          <li><strong>使用メモリが上限に近い</strong>：上限を超えるとアプリが自動で止まります。遅延時間・画質・fpsのどれかを下げます。</li>
+          <li><strong>熱い・電池の減りが速い・もたつく</strong>：数字に出なくても下げどきです。</li>
+        </ol>
+        <p>とても古いiPadで「安定」でも12fpsに届かないときは、「fps」の欄を10に、それでも届かなければ8にしてください。</p>
+      </div>
+    </details>
+    <details class="more">
+      <summary>メモリの目安と上限<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="in">
+        <p>使用メモリは「1枚の重さ × fps × ためている時間（遅延時間＋保存用の10秒＋余白2秒）」で増えます。下は多めに見積もった値で、部屋の明るさや背景で2〜3倍変わります。</p>
+        <div class="table-wrap"><table>
+          <tr><th>設定</th><th>遅延30秒</th><th>遅延90秒</th></tr>
+          <tr><td>安定</td><td class="num">約6MB</td><td class="num">約15MB</td></tr>
+          <tr><td>なめらか</td><td class="num">約11MB</td><td class="num">約28MB</td></tr>
+          <tr><td>きれい</td><td class="num">約18MB</td><td class="num">約43MB</td></tr>
+          <tr><td>高性能</td><td class="num">約45MB</td><td class="num">約110MB</td></tr>
+        </table></div>
+        <p>上限は iPad 80MB、それ以外 120MB。届きやすいのは「高性能」×長い遅延です。ここで言うメモリは作業用の一時的なもので、端末の保存容量は使いません。</p>
+      </div>
+    </details>
+  </section>
 
-  <h3>メモリの目安</h3>
-  <p>使用メモリは「1枚の重さ × fps × ためている時間」で増えます。ためている時間は、遅延時間に、保存用の10秒と余白の2秒を足した長さです。1枚の重さは撮る内容（部屋の明るさ、背景の細かさ）で2〜3倍変わります。下の表は、パソコンのChromeで測った1枚の重さの大きめの値を、さらに約2倍にして見積もった試算です。</p>
-  <div class="table-wrap"><table>
-    <tr><th>設定</th><th>遅延30秒</th><th>遅延90秒</th></tr>
-    <tr><td>安定</td><td class="num">約6MB</td><td class="num">約15MB</td></tr>
-    <tr><td>なめらか</td><td class="num">約11MB</td><td class="num">約28MB</td></tr>
-    <tr><td>きれい</td><td class="num">約18MB</td><td class="num">約43MB</td></tr>
-    <tr><td>高性能向け</td><td class="num">約45MB</td><td class="num">約110MB</td></tr>
-  </table></div>
-  <p>上限に届きやすいのは<strong>高性能向け × 長い遅延</strong>です。iPadの上限80MBを超えることがあり、そのときはアプリが自動で止まります。</p>
+  <!-- ───────── 10秒保存 ───────── -->
+  <section id="save">
+    <div class="eyebrow">SAVE</div>
+    <h2>いい場面を残す（今の10秒を保存）</h2>
+    <figure class="mini">
+      <svg viewBox="0 0 420 200" role="img" aria-label="映像の右上に「今の10秒を保存」ボタンがある図">
+        <rect x="70" y="8" width="280" height="184" rx="16" fill="#101a2b"/>
+        <rect x="84" y="22" width="252" height="128" rx="8" fill="#f4f6f8"/>
+        <circle cx="210" cy="62" r="11" fill="#c9b8a4"/>
+        <path d="M210 74 v34 M210 82 l-22 -14 M210 82 l22 -14 M210 108 l-12 26 M210 108 l12 26" stroke="#5a6b84" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <rect x="236" y="30" width="92" height="24" rx="12" fill="#9ec5fb" fill-opacity=".55" stroke="#1954ae" stroke-width="2.5"/>
+        <path d="M249 37 v8 M245 42 l4 4 4-4 M244 49 h10" stroke="#10345f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <text x="292" y="46" text-anchor="middle" font-size="9.5" font-weight="700" fill="#10345f">今の10秒を保存</text>
+        <path d="M352 60 C 378 64, 382 40, 334 42" fill="none" stroke="#a84832" stroke-width="2.5"/>
+        <path d="M340 36 l-7 6 8 4" fill="none" stroke="#a84832" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="372" y="80" text-anchor="middle" font-size="12" font-weight="800" fill="#a84832">ここ</text>
+        <rect x="84" y="158" width="252" height="22" rx="6" fill="#1d2a40"/>
+        <text x="210" y="173" text-anchor="middle" font-size="9.5" fill="#94a7c4">全画面のときも同じ右上</text>
+      </svg>
+      <figcaption>映像の右上のボタンです（全画面でも同じ場所）</figcaption>
+    </figure>
+    <div class="lead-box">
+      <b>保存されるのは、画面に出ていた直前の10秒です。</b>
+      <p>カメラがいま撮っている映像ではなく、見ていた映像がそのまま残ります。</p>
+    </div>
+    <ol class="steps">
+      <li><div><b>「今の10秒を保存」を押す</b><span>いい動きが画面に映ったら押します。</span></div></li>
+      <li><div><b>撮影が一時停止して、動画にする</b><span>約10秒かかります。そのまま待ちます。</span></div></li>
+      <li><div><b>保存先を選ぶ</b><span>「写真に保存・共有」（iPad・iPhoneは「ビデオを保存」で写真アプリへ）か「ファイルに保存」。</span></div></li>
+      <li><div><b>「閉じて撮影を再開」</b><span>遅延時間ぶん映像をため直してから映ります。</span></div></li>
+    </ol>
+    <p class="yt-open"><a href="https://youtu.be/vP_y46IlYuY?t=74" target="_blank" rel="noreferrer">動画で見る（YouTube・1:14から） ↗</a></p>
+    <details class="more">
+      <summary>知っておくとよいこと<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="in">
+        <ul>
+          <li>向き・左右反転・画質は画面と同じになります。きれいに残したい日は、画質を上げておきます。</li>
+          <li>保存しないで閉じると、その動画は消えます。</li>
+          <li>始めた直後でまだ映像が出ていない間は押せません。出始めて10秒たっていなければ、そのぶん短い動画になります。</li>
+          <li>保存のために、画面に出し終えた映像を10秒ぶん余分にためています（作業用のメモリで数MB）。端末の保存容量を使うのは、保存したときだけです。</li>
+          <li>動画は端末の中で作られ、外へ送られることはありません。</li>
+          <li>古いiPadでは、iPadOS 14.3以降のSafariが必要です。対応していないときは、その旨が表示されます。</li>
+        </ul>
+      </div>
+    </details>
+  </section>
 
-  <h3>迷ったときの進め方</h3>
-  <ol>
-    <li>初期設定のまま、使いたい遅延時間を決める</li>
-    <li>見たいものに合わせて、片方だけ一段上げる（速い動きならfps、手先や足先なら画像の長辺）</li>
-    <li>1分ほど使って「実測取得」を見る</li>
-    <li>目標に届いていなければ一段戻す</li>
-  </ol>
-  <p>選んだ設定は端末に保存され、次に開いたときも使われます。</p>
-
-  <h2 id="save">いい場面を残す（今の10秒を保存）</h2>
-  <p>映像の右上にある<strong>「今の10秒を保存」</strong>を押すと、画面に出ていた直前の10秒を動画にして残せます。全画面表示のときも、同じ右上にあります。</p>
-  <p class="yt-open"><a href="https://youtu.be/vP_y46IlYuY?t=74" target="_blank" rel="noreferrer">動画で見る（YouTube・1:14から） ↗</a></p>
-  <ol>
-    <li>いい動きができたと思ったら、画面で見終えたところで「今の10秒を保存」を押す</li>
-    <li>撮影が一時停止し、約10秒かけて動画にする（そのまま待つ）</li>
-    <li>できた動画を確かめて、保存先を選ぶ<br><strong>写真に保存・共有</strong>：iPadやiPhoneでは、出てきたメニューの「ビデオを保存」で写真アプリに入ります<br><strong>ファイルに保存</strong>：ファイルとして保存します</li>
-    <li><strong>閉じて撮影を再開</strong>を押すと、撮影に戻る</li>
-  </ol>
-  <div class="box">
-    <ul style="margin-top:0;margin-bottom:0">
-      <li>保存されるのは、画面に出ていた映像そのままです。向き・左右反転・画質も画面と同じになります。きれいに残したい日は、「画質と滑らかさ」を上げておきます。</li>
-      <li>保存しないで閉じると、その動画は消えます。</li>
-      <li>撮影を再開すると、遅延時間ぶんの映像をため直すので、映るまで少し待ちます。</li>
-      <li>始めた直後で、まだ映像が画面に出ていないあいだは押せません。出始めてから10秒たっていなければ、そのぶん短い動画になります。</li>
-      <li>保存のために、画面に出し終えた映像を10秒ぶん余分にためています。増えるのは作業用のメモリで、「安定」なら1〜2MBほどです。端末の保存容量を使うのは、保存したときだけです。</li>
-      <li>動画は端末の中で作られ、外へ送られることはありません。</li>
-      <li>古いiPadでは、iPadOS 14.3以降のSafariが必要です。対応していないときは、その旨が表示されます。</li>
-    </ul>
-  </div>
-
-  <p style="margin-top:28px"><a class="back" href="./">ミラーに戻る</a></p>
+  <p class="end"><a class="back" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>ミラーに戻る</a></p>
 </main>
 <script>
   // YouTube の再生プレーヤーは、押したときだけ読み込む（最初はサムネ画像だけ）
   document.querySelectorAll('.yt').forEach((box) => {
     const id = box.dataset.yt;
     const title = box.dataset.title || '動画';
-    if (!id || id.indexOf('VIDEO_') === 0) {
-      box.innerHTML = '<div class="soon">動画は準備中です</div>';
-      return;
-    }
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.setAttribute('aria-label', title + 'を再生');
@@ -207,11 +339,18 @@
       box.appendChild(f);
     });
     box.appendChild(btn);
-    const open = document.createElement('p');
-    open.className = 'yt-open';
-    open.innerHTML = '<a href="https://youtu.be/' + encodeURIComponent(id) + '" target="_blank" rel="noreferrer">YouTubeで開く ↗</a>';
-    box.insertAdjacentElement('afterend', open);
   });
+
+  // いま読んでいる節の導線を光らせる
+  const tabs = Array.from(document.querySelectorAll('.tabs a'));
+  const mark = (id) => tabs.forEach((a) => a.classList.toggle('on', a.dataset.s === id));
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) mark(e.target.id); });
+    }, { rootMargin: '-110px 0px -60% 0px' });
+    document.querySelectorAll('main section').forEach((s) => io.observe(s));
+  }
+  mark((location.hash || '#basic').slice(1));
 </script>
 </body>
 </html>
